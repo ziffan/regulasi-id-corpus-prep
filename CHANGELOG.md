@@ -6,7 +6,7 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-04-29
+## [0.1.0] - 2026-04-29 — PyPI: `pip install regulasi-id-corpus-prep`
 
 ### Added
 - Subcommand `extract`: ekstrak teks dari PDF born-digital ke `.raw.txt` + `.raw.meta.json` via PyMuPDF (`sort=True`).
@@ -23,3 +23,7 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Dokumentasi: `docs/DECISION_TREE.md`, `docs/VALIDATION_GUIDE.md`, `docs/PROFILE_GUIDE.md`.
 - Sample input/output di `examples/` untuk regression testing.
 - Apache 2.0 license + NOTICE untuk PyMuPDF (AGPL).
+
+### Notes
+- Round-trip match 100.00% (SequenceMatcher) terhadap 4 PDF corpus LexHarmoni: POJK 22-2023, POJK 40-2024, SEOJK 19-2025, POJK 10-2022.
+- Stage 0 corpus preparation didokumentasikan di LexHarmoni `docs/REPLICATION_GUIDEv1.md`.
