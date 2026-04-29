@@ -16,9 +16,21 @@ Tidak yakin PDF Anda termasuk jenis mana? Lihat [docs/DECISION_TREE.md](docs/DEC
 
 ### Instalasi
 
+Install dari GitHub (saat ini belum tersedia di PyPI):
+
 ```bash
-pip install regulasi-id-corpus-prep
+pip install git+https://github.com/ziffan/regulasi-id-corpus-prep.git
 ```
+
+Atau clone dan install dalam mode editable untuk development:
+
+```bash
+git clone https://github.com/ziffan/regulasi-id-corpus-prep.git
+cd regulasi-id-corpus-prep
+pip install -e .
+```
+
+> PyPI publish direncanakan setelah v0.1.0 mendapat review pengguna non-teknis.
 
 ### Jalankan Pipeline Penuh (untuk pengguna non-teknis)
 
