@@ -58,6 +58,15 @@ rules:
     newlines_before: 1
     requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi'
 
+  # Normalkan spasi sebelum titik dua pada kata kunci struktural
+  # PDF OJK kadang menghasilkan "Menimbang :" (spasi sebelum :) dari layout
+  - name: normalize_keyword_colon
+    type: noise_removal
+    pattern: '(Menimbang|Mengingat|MEMUTUSKAN|Menetapkan)\s+:'
+    replacement: "\\1:"
+    flags:
+      - IGNORECASE
+
   # Sisipkan baris baru sebelum elemen struktur utama dokumen POJK
   - name: split_before_structural_keywords
     type: structure_split
