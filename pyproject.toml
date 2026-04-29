@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "regulasi-id-corpus-prep"
+version = "0.1.0"
+description = "Convert born-digital Indonesian regulatory PDFs (OJK POJK/SEOJK) to clean corpus text"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "Ziffany Firdinal" }]
+dependencies = [
+    "PyMuPDF>=1.23.0",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "click>=8.1",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+regulasi-id-corpus-prep = "regulasi_id_corpus_prep.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["regulasi_id_corpus_prep*"]
+
+[tool.setuptools.package-data]
+"regulasi_id_corpus_prep" = ["profiles/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,40 @@
+metadata:
+  name: test-minimal
+  description: "Profile minimal untuk unit testing"
+  version: "1.0.0"
+  document_types:
+    - TEST
+
+rules:
+  - name: remove_noise_marker
+    type: noise_removal
+    pattern: '##NOISE##'
+    replacement: ''
+
+  - name: normalize_whitespace
+    type: whitespace_normalize
+
+  - name: split_before_section
+    type: structure_split
+    pattern: 'SECTION\s+\d+'
+    newlines_before: 2
+
+  - name: split_before_item
+    type: structure_split
+    pattern: '\(\d+\)'
+    newlines_before: 1
+    space_after: true
+
+  - name: split_before_letter_item
+    type: structure_split
+    pattern: '[a-z]\.'
+    newlines_before: 1
+    requires_following: 'bahwa|dalam'
+
+validation:
+  title_keywords:
+    - "TEST DOCUMENT"
+  content_marker_pattern: 'SECTION\s+\d+'
+  content_marker_label: "Section"
+  noise_check_patterns:
+    - '##NOISE##'

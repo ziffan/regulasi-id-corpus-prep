@@ -1,0 +1,48 @@
+{
+  "source_raw": "SEOJK-19-2023.raw.txt",
+  "profile_name": "ojk-seojk",
+  "profile_version": "1.0.0",
+  "rules_applied": {
+    "remove_jdih_links": {
+      "type": "noise_removal",
+      "match_count": 0
+    },
+    "remove_page_numbers": {
+      "type": "noise_removal",
+      "match_count": 20
+    },
+    "remove_leading_artifact": {
+      "type": "noise_removal",
+      "match_count": 0
+    },
+    "normalize_whitespace": {
+      "type": "whitespace_normalize",
+      "match_count": 6167
+    },
+    "split_before_salinan_header": {
+      "type": "structure_split",
+      "match_count": 1
+    },
+    "split_before_sehubungan": {
+      "type": "structure_split",
+      "match_count": 1
+    },
+    "split_before_roman_sections": {
+      "type": "structure_split",
+      "match_count": 15
+    },
+    "split_before_ayat": {
+      "type": "structure_split",
+      "match_count": 18
+    },
+    "split_before_numbered_points": {
+      "type": "structure_split",
+      "match_count": 105
+    },
+    "split_before_letter_points": {
+      "type": "structure_split",
+      "match_count": 6
+    }
+  },
+  "timestamp": "2026-04-29T15:06:15.476352+00:00"
+}

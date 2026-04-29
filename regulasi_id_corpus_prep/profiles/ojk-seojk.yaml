@@ -1,0 +1,84 @@
+metadata:
+  name: ojk-seojk
+  description: "SEOJK (Surat Edaran Otoritas Jasa Keuangan) dari JDIH OJK — PDF born-digital"
+  version: "1.0.0"
+  document_types:
+    - SEOJK
+
+rules:
+  # Hapus tautan footer JDIH OJK
+  - name: remove_jdih_links
+    type: noise_removal
+    pattern: 'https?://jdih\.ojk\.go\.id/\s*'
+    replacement: ' '
+    flags:
+      - IGNORECASE
+
+  # Hapus nomor halaman format "-12-"
+  - name: remove_page_numbers
+    type: noise_removal
+    pattern: '\s*-\s*\d+\s*-\s*'
+    replacement: ' '
+
+  # Hapus artefak karakter tunggal di awal dokumen ("r", "s", dll.)
+  # yang terbawa dari akhir halaman sebelumnya pada beberapa PDF SEOJK
+  - name: remove_leading_artifact
+    type: noise_removal
+    pattern: '^[a-z]\s+'
+    replacement: ''
+
+  # Gabungkan semua whitespace menjadi satu spasi
+  - name: normalize_whitespace
+    type: whitespace_normalize
+
+  # Pisahkan header "Yth. Direksi..." dari baris judul dokumen
+  - name: split_before_salinan_header
+    type: structure_split
+    pattern: 'SALINAN\s+SURAT\s+EDARAN'
+    newlines_before: 2
+
+  # Pisahkan judul dokumen dari preamble "Sehubungan dengan amanat..."
+  - name: split_before_sehubungan
+    type: structure_split
+    pattern: 'Sehubungan\s+dengan'
+    newlines_before: 2
+
+  # Sisipkan baris baru sebelum bagian bernomor Romawi (I., II., III., dst.)
+  # SEOJK menggunakan angka Romawi sebagai pengganti BAB
+  - name: split_before_roman_sections
+    type: structure_split
+    pattern: '[IVX]{1,6}\.'
+    newlines_before: 2
+    space_after: true
+
+  # Sisipkan baris baru sebelum penomoran ayat: (1), (2), dst.
+  - name: split_before_ayat
+    type: structure_split
+    pattern: '\(\d+\)'
+    newlines_before: 1
+    space_after: true
+
+  # Sisipkan baris baru sebelum poin angka: 1., 2., dst.
+  - name: split_before_numbered_points
+    type: structure_split
+    pattern: '\d+\.'
+    newlines_before: 1
+    space_after: true
+
+  # Sisipkan baris baru sebelum poin huruf kecil yang diikuti kata kunci hukum
+  - name: split_before_letter_points
+    type: structure_split
+    pattern: '[a-z]\.'
+    newlines_before: 1
+    requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi'
+
+validation:
+  title_keywords:
+    - "SURAT EDARAN OTORITAS JASA KEUANGAN"
+    - "SEOJK"
+  # Hitung bagian bernomor Romawi sebagai penanda struktur utama SEOJK
+  content_marker_pattern: '\b[IVX]{1,6}\.\s+[A-Z]'
+  content_marker_label: "Bagian"
+  noise_check_patterns:
+    - 'jdih\.ojk\.go\.id'
+    - '-\s*\d+\s*-'

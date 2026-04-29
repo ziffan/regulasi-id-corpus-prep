@@ -1,0 +1,77 @@
+metadata:
+  name: ojk-pojk
+  description: "POJK (Peraturan Otoritas Jasa Keuangan) dari JDIH OJK — PDF born-digital"
+  version: "1.0.0"
+  document_types:
+    - POJK
+
+rules:
+  # Hapus tautan footer JDIH OJK yang muncul di tiap halaman
+  - name: remove_jdih_links
+    type: noise_removal
+    pattern: 'https?://jdih\.ojk\.go\.id/\s*'
+    replacement: ' '
+    flags:
+      - IGNORECASE
+
+  # Hapus nomor halaman format "-12-" yang disisipkan oleh PDF generator OJK
+  - name: remove_page_numbers
+    type: noise_removal
+    pattern: '\s*-\s*\d+\s*-\s*'
+    replacement: ' '
+
+  # Gabungkan semua whitespace (termasuk newline antar-baris) menjadi satu spasi
+  # Ini menyatukan kalimat yang terpotong di tengah halaman
+  - name: normalize_whitespace
+    type: whitespace_normalize
+
+  # Sisipkan baris baru sebelum setiap BAB
+  - name: split_before_bab
+    type: structure_split
+    pattern: 'BAB\s+[IVX]+'
+    newlines_before: 2
+
+  # Sisipkan baris baru sebelum setiap Pasal
+  - name: split_before_pasal
+    type: structure_split
+    pattern: 'Pasal\s+\d+'
+    newlines_before: 2
+
+  # Sisipkan baris baru sebelum penomoran ayat: (1), (2), dst.
+  - name: split_before_ayat
+    type: structure_split
+    pattern: '\(\d+\)'
+    newlines_before: 1
+    space_after: true
+
+  # Sisipkan baris baru sebelum poin angka: 1., 2., dst.
+  - name: split_before_numbered_points
+    type: structure_split
+    pattern: '\d+\.'
+    newlines_before: 1
+    space_after: true
+
+  # Sisipkan baris baru sebelum poin huruf kecil yang diikuti kata kunci hukum
+  - name: split_before_letter_points
+    type: structure_split
+    pattern: '[a-z]\.'
+    newlines_before: 1
+    requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi'
+
+  # Sisipkan baris baru sebelum elemen struktur utama dokumen POJK
+  - name: split_before_structural_keywords
+    type: structure_split
+    pattern: '(?:Menimbang|Mengingat|MEMUTUSKAN|Menetapkan|DENGAN\s+RAHMAT|DEWAN\s+KOMISIONER|TENTANG)\s*:'
+    newlines_before: 2
+    flags:
+      - IGNORECASE
+
+validation:
+  title_keywords:
+    - "PERATURAN OTORITAS JASA KEUANGAN"
+    - "POJK"
+  content_marker_pattern: 'Pasal\s+\d+'
+  content_marker_label: "Pasal"
+  noise_check_patterns:
+    - 'jdih\.ojk\.go\.id'
+    - '-\s*\d+\s*-'

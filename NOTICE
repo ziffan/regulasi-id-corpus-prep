@@ -1,0 +1,29 @@
+regulasi-id-corpus-prep
+Copyright 2026 Ziffany Firdinal
+
+This product is licensed under the Apache License, Version 2.0.
+See LICENSE for the full license text.
+
+---
+
+Third-Party Dependencies
+------------------------
+
+PyMuPDF (fitz)
+  License: GNU Affero General Public License v3.0 (AGPL-3.0)
+  Source:  https://github.com/pymupdf/PyMuPDF
+  Usage:   Used at runtime for PDF text extraction (born-digital PDFs only).
+
+  Note: PyMuPDF is AGPL-licensed. This tool (regulasi-id-corpus-prep) is
+  Apache 2.0 licensed and uses PyMuPDF as a library dependency. Under AGPL,
+  users who distribute this tool or make it available as a network service
+  must also make the complete corresponding source code available.
+
+  If the AGPL license presents a conflict for your use case, you may
+  substitute `pypdf` (BSD-3-Clause) as the extraction backend. See
+  `regulasi_id_corpus_prep/extract.py` for the thin abstraction layer.
+  Implementing the pypdf fallback is tracked as a v0.2.0+ future feature.
+
+All other dependencies (pyyaml, pydantic, click, rich) are permissively
+licensed (MIT or Apache 2.0) and do not impose additional distribution
+requirements.

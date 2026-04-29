@@ -1,0 +1,69 @@
+# Template Profile untuk regulasi-id-corpus-prep
+# Lihat docs/PROFILE_GUIDE.md untuk panduan lengkap dengan contoh.
+#
+# Salin file ini, beri nama <jenis-dokumen>.yaml, lalu isi sesuai kebutuhan.
+# Jalankan 'regulasi-id-corpus-prep list-profiles' untuk melihat profile tersedia.
+
+metadata:
+  name: nama-profile-anda        # Unik, digunakan dengan --profile=nama-profile-anda
+  description: "Deskripsi satu baris tentang jenis dokumen yang ditangani profile ini"
+  version: "1.0.0"
+  document_types:                # Daftar informatif jenis dokumen yang dicakup
+    - POJK                       # Contoh: POJK, SEOJK, PBI, Permenkeu, Permenkominfo
+
+rules:
+  # Rules dijalankan BERURUTAN sesuai urutan di sini. Urutan penting.
+  #
+  # Tiga tipe rule yang tersedia:
+  #   noise_removal       — hapus atau ganti pola teks yang tidak diinginkan
+  #   whitespace_normalize — gabungkan semua whitespace menjadi satu spasi
+  #   structure_split     — sisipkan baris baru sebelum elemen struktural
+
+  # -------------------------------------------------------------------------
+  # noise_removal
+  # -------------------------------------------------------------------------
+  # Gunakan untuk: footer, header halaman, nomor halaman, watermark, dll.
+  #
+  - name: contoh_hapus_noise         # Nama unik untuk rule ini
+    type: noise_removal
+    pattern: 'pola-regex-anda'       # Python regex. Lihat https://docs.python.org/3/library/re.html
+    replacement: ' '                 # String pengganti (default: spasi). Gunakan '' untuk hapus total.
+    flags: []                        # Opsional: [IGNORECASE, MULTILINE, DOTALL]
+
+  # -------------------------------------------------------------------------
+  # whitespace_normalize
+  # -------------------------------------------------------------------------
+  # Jalankan ini SEBELUM semua rule structure_split.
+  # Ini menggabungkan teks yang terpotong antar-baris PDF menjadi paragraf menerus.
+  #
+  - name: normalize_whitespace
+    type: whitespace_normalize
+
+  # -------------------------------------------------------------------------
+  # structure_split
+  # -------------------------------------------------------------------------
+  # Gunakan untuk: BAB, Pasal, ayat, poin bernomor, bagian berlabel, dll.
+  #
+  - name: contoh_split_sebelum_bagian
+    type: structure_split
+    pattern: 'POLA\s+ANDA'           # Elemen struktural yang akan didahului baris baru
+    newlines_before: 2               # Jumlah baris baru sebelum elemen (1–4, default: 2)
+    space_after: false               # Tambahkan spasi setelah elemen yang cocok (default: false)
+    requires_following: null         # Jika diisi, split hanya dilakukan jika diikuti pola ini
+                                     # Pola yang diikuti akan dikonsumsi dan disisipkan kembali
+    flags: []                        # Opsional: [IGNORECASE, MULTILINE, DOTALL]
+
+validation:
+  # Kata kunci yang harus ada di baris pertama dokumen
+  title_keywords:
+    - "KATA KUNCI JUDUL"
+
+  # Regex untuk menghitung penanda struktural utama (misalnya Pasal, BAB, atau Bagian)
+  content_marker_pattern: 'Pasal\s+\d+'
+
+  # Label manusiawi untuk penanda di atas (digunakan dalam laporan validasi)
+  content_marker_label: "Pasal"
+
+  # Pola yang TIDAK boleh ada di output bersih (sisa noise yang lolos normalisasi)
+  noise_check_patterns:
+    - 'pola-noise-anda'

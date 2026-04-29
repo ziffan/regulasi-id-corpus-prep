@@ -1,0 +1,17 @@
+metadata:
+  name: malformed
+  # description sengaja dihilangkan untuk memicu ValidationError
+  version: "1.0.0"
+  document_types:
+    - TEST
+
+rules:
+  - name: bad_rule
+    type: tipe_tidak_valid        # tipe tidak dikenal
+    pattern: 'test'
+
+validation:
+  title_keywords:
+    - "TEST"
+  content_marker_pattern: 'test'
+  content_marker_label: "Test"
