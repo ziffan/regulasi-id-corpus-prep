@@ -47,7 +47,7 @@ regulasi-id-corpus-prep list-profiles
 
 - **Jangan ubah golden files** di `examples/sample-output/` secara manual. Jika perlu update (karena perubahan profile yang disengaja), generate ulang dengan `run` lalu commit hasilnya.
 - **Jangan collapse pipeline** menjadi satu command. Pemisahan `extract` → `normalize` adalah keputusan arsitektur yang non-negotiable (lihat `DECISIONS.md` ADR-001).
-- **Jangan tambah profile non-OJK** di v0.1.0. Arsitektur sudah siap; profile-nya belum.
+- **Jangan tambah profile non-OJK** sebelum ada spec. Arsitektur sudah siap; profile baru (PBI, Permenkeu, dll.) direncanakan di v0.2.0.
 - **Jangan tambah OCR, scraping JDIH, atau network calls** dalam bentuk apapun.
 
 ### Harus Dilakukan
@@ -72,8 +72,11 @@ Reference PDFs ada di `D:\HackathonOpus4.7\pdf-aturan\`. Untuk verifikasi setela
 ```python
 # Lihat tests/test_integration.py untuk pola yang benar
 # Target: ≥99% character-level match (whitespace-collapsed) terhadap reference .txt
-# POJK profiles: 100.00% match saat ini
-# SEOJK profiles: 99.97% (2-char diff = artefak 'r ' dihapus, ini perbaikan)
+# Baseline saat ini (SequenceMatcher ratio, 2026-04-29):
+#   POJK 22-2023: 100.00%
+#   POJK 40-2024: 100.00%
+#   SEOJK 19-2025: 100.00%
+#   POJK 10-2022: 100.00%
 ```
 
 ## Dependensi Kritis
@@ -81,9 +84,9 @@ Reference PDFs ada di `D:\HackathonOpus4.7\pdf-aturan\`. Untuk verifikasi setela
 - **PyMuPDF (AGPL)**: library ekstraksi PDF. Harus selalu disebut di NOTICE jika distribusi tool berubah. Fallback ke `pypdf` (BSD) direncanakan di v0.2.0.
 - **Pydantic v2**: bukan v1. API berbeda signifikan.
 
-## Status v0.1.0
+## Status v0.1.0 — SELESAI (2026-04-29)
 
 - 40/40 tests pass
-- POJK/SEOJK profiles diverifikasi terhadap 4 PDF LexHarmoni corpus
-- Fresh install dari GitHub berfungsi
-- PyPI publish direncanakan setelah review pengguna non-teknis
+- POJK/SEOJK profiles diverifikasi 100.00% terhadap 4 PDF LexHarmoni corpus
+- Tersedia di PyPI: `pip install regulasi-id-corpus-prep`
+- Stage 0 sudah didokumentasikan di LexHarmoni `docs/REPLICATION_GUIDEv1.md`
