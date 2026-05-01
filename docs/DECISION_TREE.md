@@ -34,15 +34,35 @@ Buka file `.pdf` Anda menggunakan salah satu:
 Teks yang ditempel terlihat seperti teks normal (meski mungkin berantakan):
 
 ```
-PERATURAN OTORITAS JASA KEUANGAN NOMOR 40 TAHUN 2024 TENTANG LAYANAN
-PENDANAAN BERSAMA BERBASIS TEKNOLOGI INFORMASI...
+PERATURAN PEMERINTAH REPUBLIK INDONESIA NOMOR 22 TAHUN 2025 TENTANG...
 ```
 
 **→ PDF Anda dapat diproses oleh tool ini.**
 
-Jalankan:
+Pilih profile yang sesuai dengan jenis dokumen, lalu jalankan:
+
 ```bash
-regulasi-id-corpus-prep run dokumen.pdf --profile ojk-pojk
+regulasi-id-corpus-prep run dokumen.pdf --profile <nama-profile>
+```
+
+| Jenis dokumen | Profile | Sumber PDF |
+|--------------|---------|------------|
+| POJK (Peraturan OJK) | `ojk-pojk` | JDIH OJK |
+| SEOJK (Surat Edaran OJK) | `ojk-seojk` | JDIH OJK |
+| PP (Peraturan Pemerintah) | `ri-pp` | peraturan.go.id, hukumonline.com |
+| UU (Undang-Undang) | `ri-uu` | peraturan.go.id, hukumonline.com |
+| UU Konsolidasi | `uu-konsolidasi` | hukumonline.com (versi konsolidasi) |
+
+Tidak tahu nama profile-nya? Jalankan:
+
+```bash
+regulasi-id-corpus-prep list-profiles
+```
+
+Ingin output dalam format Markdown (dengan heading `##`, `###`)? Tambahkan `--format md`:
+
+```bash
+regulasi-id-corpus-prep run dokumen.pdf --profile ri-uu --format md
 ```
 
 ---
@@ -80,9 +100,19 @@ Tool ini akan mengekstrak teks, tapi hasil kemungkinan tidak bisa dibaca. Coba l
 
 ---
 
-## Unduh PDF dari JDIH OJK
+## Unduh PDF dari Sumber Resmi
 
 Tool ini tidak mengunduh PDF secara otomatis. Unduh manual dari:
-- **POJK:** https://ojk.go.id/id/regulasi/Pages/POJK.aspx
-- **SEOJK:** https://ojk.go.id/id/regulasi/Pages/SE-OJK.aspx
-- **JDIH OJK:** https://jdih.ojk.go.id/
+
+**OJK:**
+- POJK: https://ojk.go.id/id/regulasi/Pages/POJK.aspx
+- SEOJK: https://ojk.go.id/id/regulasi/Pages/SE-OJK.aspx
+- JDIH OJK: https://jdih.ojk.go.id/
+
+**Pemerintah RI (PP dan UU):**
+- JDIH Nasional / peraturan.go.id: https://peraturan.go.id/
+- hukumonline.com (termasuk versi konsolidasi): https://www.hukumonline.com/peraturan/
+
+> **Catatan:** PDF dari hukumonline.com yang diunduh secara personal mengandung footer
+> `NAMA | DIUNDUH PADA ...` yang akan dihapus otomatis oleh profile `ri-pp`, `ri-uu`,
+> dan `uu-konsolidasi`.

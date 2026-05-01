@@ -10,6 +10,7 @@ Profile adalah file YAML yang mendefinisikan aturan pembersihan teks untuk satu 
 1. **Metadata** — nama, deskripsi, versi
 2. **Rules** — daftar aturan transformasi yang dijalankan berurutan
 3. **Validation** — konfigurasi untuk pemeriksaan otomatis
+4. **Markdown Headings** *(opsional)* — pemetaan pola baris ke heading Markdown
 
 Profile disimpan di `regulasi_id_corpus_prep/profiles/`. Setiap file `.yaml` (kecuali `_template.yaml`) otomatis tersedia via `--profile=nama-file`.
 
@@ -65,6 +66,16 @@ Tidak ada parameter tambahan. Rule ini:
   # Hanya split "a. bahwa..." bukan "e.g.", "a. b.", dll.
 ```
 
+> **Perhatian — engine menambahkan `\s+` di depan setiap pola `structure_split` secara otomatis.**
+> Ini berarti pola `Pasal\s+\d+` sebenarnya dicocokkan sebagai `\s+(Pasal\s+\d+)`.
+> Konsekuensinya: jika ada dua pola di mana pola A adalah suffix dari pola B
+> (contoh: `Pasal \d+` dan `Penjelasan Pasal \d+`), pola A akan ikut memotong
+> spasi di dalam pola B. Solusi: gunakan negative lookbehind pada pola A.
+> ```yaml
+> # Cegah split "Pasal N" di dalam "Penjelasan Pasal N"
+> pattern: '(?<!Penjelasan )Pasal\s+\d+[A-Z]?'
+> ```
+
 ---
 
 ## Urutan Rule yang Direkomendasikan
@@ -76,6 +87,31 @@ Tidak ada parameter tambahan. Rule ini:
 4. structure_split untuk sub-elemen (ayat, poin angka, poin huruf)
 5. structure_split untuk kata kunci struktural (Menimbang, Mengingat, dll.)
 ```
+
+---
+
+## Markdown Headings (Opsional)
+
+Field `markdown_headings` memungkinkan output `--format md` memberi heading Markdown pada baris-baris tertentu. Jika tidak diisi, `--format md` tetap menghasilkan `.md` tapi tanpa heading markup.
+
+```yaml
+markdown_headings:
+  - pattern: 'BAB\s+[IVXLCDM]+'   # Python regex, dicocokkan dari awal baris (re.match)
+    level: 2                        # Level heading: 1–6 (# sampai ######)
+  - pattern: 'Pasal\s+\d+'
+    level: 3
+  - pattern: 'PENJELASAN'
+    level: 2
+    flags: []                       # Opsional: IGNORECASE, MULTILINE, dll.
+```
+
+**Cara kerja:** Setelah semua rules selesai dan baris kosong dihapus, setiap baris yang cocok dengan salah satu pola akan diberi prefix `##` / `###` / dst. Pencocokan menggunakan `re.match` (dari awal baris, tidak harus seluruh baris) sehingga pola `BAB\s+[IVX]+` cocok dengan baris `BAB I KETENTUAN UMUM`.
+
+**Level yang direkomendasikan:**
+- Level 2 (`##`) — BAB, PENJELASAN
+- Level 3 (`###`) — Pasal
+- Level 4 (`####`) — Penjelasan Pasal (khusus konsolidasi)
+- Level 2 (`##`) — Bagian Romawi (I., II.) untuk SEOJK
 
 ---
 
@@ -126,7 +162,17 @@ Buka `.raw.txt` dan cari pola yang menandai awal bagian dokumen:
 
 Tambahkan sebagai `structure_split` rules.
 
-### 5. Isi bagian `validation`
+### 5. Tambah markdown_headings (opsional)
+
+```yaml
+markdown_headings:
+  - pattern: 'BAB\s+[IVXLCDM]+'
+    level: 2
+  - pattern: 'Pasal\s+\d+'
+    level: 3
+```
+
+### 6. Isi bagian `validation`
 
 ```yaml
 validation:
@@ -140,16 +186,19 @@ validation:
     - '-\s*\d+\s*-'
 ```
 
-### 6. Uji profile
+### 7. Uji profile
 
 ```bash
 regulasi-id-corpus-prep run contoh.pdf --profile bi-pbi --output-dir /tmp/test/
 regulasi-id-corpus-prep validate /tmp/test/contoh.txt --profile bi-pbi
+
+# Uji output Markdown
+regulasi-id-corpus-prep run contoh.pdf --profile bi-pbi --format md --output-dir /tmp/test/
 ```
 
 Bandingkan output manual dengan PDF asli menggunakan [docs/VALIDATION_GUIDE.md](VALIDATION_GUIDE.md).
 
-### 7. Kontribusi
+### 8. Kontribusi
 
 Jika profile Anda bekerja dengan baik, kontribusikan melalui Pull Request ke repositori utama!
 
@@ -173,10 +222,15 @@ rules:
     flags: list[string]           # Opsional: IGNORECASE, MULTILINE, DOTALL
     # whitespace_normalize: tidak ada field tambahan
     # structure_split:
-    pattern: string               # Python regex (elemen yang diawali newline)
+    pattern: string               # Python regex (engine menambahkan \s+ di depan otomatis)
     newlines_before: int          # 1–4, default: 2
     space_after: bool             # Default: false
     requires_following: string    # Opsional: pola yang harus mengikuti
+    flags: list[string]           # Opsional
+
+markdown_headings:                # Opsional — untuk output --format md
+  - pattern: string               # Python regex, dicocokkan dari awal baris (re.match)
+    level: int                    # 1–6 (# sampai ######)
     flags: list[string]           # Opsional
 
 validation:
