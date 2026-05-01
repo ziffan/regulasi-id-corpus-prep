@@ -249,4 +249,4 @@ Reference PDFs ada di `D:\HackathonOpus4.7\pdf-aturan\`. Untuk verifikasi setela
 - 4 built-in profiles: `ojk-pojk`, `ojk-seojk`, `ri-pp`, `ri-uu`
 - `--format md` tersedia di `normalize` dan `run`
 - POJK/SEOJK diverifikasi 100.00% terhadap 4 PDF LexHarmoni corpus
-- PyPI: `pip install regulasi-id-corpus-prep` (latest release: v0.1.0; v0.2.0 belum di-tag)
+- PyPI: `pip install regulasi-id-corpus-prep` (latest release: v0.2.0)
