@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "regulasi-id-corpus-prep"
-version = "0.1.0"
-description = "Convert born-digital Indonesian regulatory PDFs (OJK POJK/SEOJK) to clean corpus text"
+version = "0.2.0"
+description = "Convert born-digital Indonesian regulatory PDFs (OJK POJK/SEOJK, RI PP/UU) to clean corpus text"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
