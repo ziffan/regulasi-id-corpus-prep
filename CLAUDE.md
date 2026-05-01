@@ -45,9 +45,9 @@ regulasi-id-corpus-prep run examples/sample-input/SEOJK-19-2023.pdf \
 regulasi-id-corpus-prep list-profiles
 ```
 
-## Rencana v0.2.0
+## Status v0.2.0 — SELESAI (2026-05-01)
 
-### Profile RI — SELESAI
+### Profile RI
 
 - **`ri-pp`**: Peraturan Pemerintah RI (peraturan.go.id, hukumonline.com) ✓
 - **`ri-uu`**: Undang-Undang RI (peraturan.go.id, hukumonline.com SALINAN) ✓  
@@ -55,11 +55,17 @@ regulasi-id-corpus-prep list-profiles
 - **`uu-konsolidasi`**: UU Konsolidasi hukumonline (teks terintegrasi + perubahan + anotasi Putusan MK) ✓  
   Referensi PDF: `examples/sample-input/UU_NO_1_2023_KNS.pdf`, `UU_NO_13_2003_REV-JAN26_KNSUM.pdf`
 
-### Fitur Markdown output (`--format md`) — BELUM DIKERJAKAN
-Tambah flag `--format [txt|md]` ke subcommand `normalize` dan `run`. Arsitektur:
-- Profile perlu section baru `markdown_headings` (opsional): list `{pattern, level}` yang memetakan pola struktural ke heading level Markdown (`##`, `###`, dll.)
-- Output: `.md` + `.meta.json` jika `--format md`, default tetap `.txt`
-- Perubahan kode: `profile.py` (schema), `normalize.py` (MD renderer), `cli.py` (flag), semua profiles (tambah `markdown_headings`)
+### Fitur Markdown output (`--format md`) ✓
+
+Flag `--format [txt|md]` di `normalize` dan `run` (default: `txt`). Saat `md` dipilih:
+- Output: `.md` + `.meta.json`, field `output_format` dicatat di meta
+- `profile.py`: model `MarkdownHeading` baru (`pattern`, `level` 1–6, `flags`); field `markdown_headings` di `Profile` (default kosong — backward compatible)
+- `normalize.py`: `_apply_markdown_headings()` dijalankan per-baris setelah semua rules selesai dan empty lines dihapus; menggunakan `re.match` (bukan fullmatch) agar pola partial-line seperti `BAB\s+[IVX]+` cocok dengan `BAB I KETENTUAN UMUM`
+- Semua 5 profile sudah punya `markdown_headings`: BAB→`##`, Pasal→`###`, Penjelasan Pasal (uu-konsolidasi)→`####`, bagian Romawi SEOJK→`##`, PENJELASAN (ri-pp/ri-uu)→`##`
+
+### Totals v0.2.0
+
+- 105/105 tests pass
 
 ## Aturan Penting
 
@@ -257,12 +263,13 @@ Reference PDFs ada di `D:\HackathonOpus4.7\pdf-aturan\`. Untuk verifikasi setela
 
 ## Dependensi Kritis
 
-- **PyMuPDF (AGPL)**: library ekstraksi PDF. Harus selalu disebut di NOTICE jika distribusi tool berubah. Fallback ke `pypdf` (BSD) direncanakan di v0.2.0.
+- **PyMuPDF (AGPL)**: library ekstraksi PDF. Harus selalu disebut di NOTICE jika distribusi tool berubah. Fallback ke `pypdf` (BSD) direncanakan di versi mendatang.
 - **Pydantic v2**: bukan v1. API berbeda signifikan.
 
-## Status v0.2.0 — SELESAI (2026-05-01)
+## Status Terkini — v0.2.0 SELESAI (2026-05-01)
 
-- 89/89 tests pass
-- Profile baru: `ri-uu`, `uu-konsolidasi`
-- POJK/SEOJK profiles diverifikasi 100.00% terhadap 4 PDF LexHarmoni corpus
-- Tersedia di PyPI: `pip install regulasi-id-corpus-prep`
+- 105/105 tests pass
+- 5 built-in profiles: `ojk-pojk`, `ojk-seojk`, `ri-pp`, `ri-uu`, `uu-konsolidasi`
+- `--format md` tersedia di `normalize` dan `run`
+- POJK/SEOJK diverifikasi 100.00% terhadap 4 PDF LexHarmoni corpus
+- PyPI: `pip install regulasi-id-corpus-prep` (latest release: v0.1.0; v0.2.0 belum di-tag)
