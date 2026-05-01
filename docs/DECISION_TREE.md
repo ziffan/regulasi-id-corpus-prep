@@ -49,9 +49,8 @@ regulasi-id-corpus-prep run dokumen.pdf --profile <nama-profile>
 |--------------|---------|------------|
 | POJK (Peraturan OJK) | `ojk-pojk` | JDIH OJK |
 | SEOJK (Surat Edaran OJK) | `ojk-seojk` | JDIH OJK |
-| PP (Peraturan Pemerintah) | `ri-pp` | peraturan.go.id, hukumonline.com |
-| UU (Undang-Undang) | `ri-uu` | peraturan.go.id, hukumonline.com |
-| UU Konsolidasi | `uu-konsolidasi` | hukumonline.com (versi konsolidasi) |
+| PP (Peraturan Pemerintah) | `ri-pp` | peraturan.go.id |
+| UU (Undang-Undang) | `ri-uu` | peraturan.go.id |
 
 Tidak tahu nama profile-nya? Jalankan:
 
@@ -111,8 +110,3 @@ Tool ini tidak mengunduh PDF secara otomatis. Unduh manual dari:
 
 **Pemerintah RI (PP dan UU):**
 - JDIH Nasional / peraturan.go.id: https://peraturan.go.id/
-- hukumonline.com (termasuk versi konsolidasi): https://www.hukumonline.com/peraturan/
-
-> **Catatan:** PDF dari hukumonline.com yang diunduh secara personal mengandung footer
-> `NAMA | DIUNDUH PADA ...` yang akan dihapus otomatis oleh profile `ri-pp`, `ri-uu`,
-> dan `uu-konsolidasi`.

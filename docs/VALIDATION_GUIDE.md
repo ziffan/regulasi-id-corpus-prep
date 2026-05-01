@@ -34,7 +34,6 @@ Alat `validate` melakukan pemeriksaan teknis otomatis. Panduan ini melengkapinya
 | `ojk-seojk` | `SALINAN SURAT EDARAN OTORITAS JASA KEUANGAN NOMOR...` |
 | `ri-pp` | `PERATURAN PEMERINTAH REPUBLIK INDONESIA NOMOR...` |
 | `ri-uu` | `UNDANG-UNDANG REPUBLIK INDONESIA NOMOR...` |
-| `uu-konsolidasi` | `KONSOLIDASI UNDANG-UNDANG REPUBLIK INDONESIA NOMOR...` |
 
 **Tanda masalah:**
 - Baris pertama kosong atau hanya berisi karakter aneh
@@ -57,7 +56,6 @@ Alat `validate` melakukan pemeriksaan teknis otomatis. Panduan ini melengkapinya
 | `ojk-seojk` | `I. `, `II. `, `III. ` | Bagian bernomor Romawi |
 | `ri-pp` | `Pasal ` (dengan spasi) | |
 | `ri-uu` | `Pasal ` (dengan spasi) | Bisa Pasal I/II (Romawi) atau Pasal 1/2 (Arab) |
-| `uu-konsolidasi` | `Pasal ` (dengan spasi) | |
 
 3. Catat jumlah hasil yang ditemukan
 4. Bandingkan dengan PDF asli
@@ -95,7 +93,6 @@ Perlakuan berbeda tergantung profile:
 | `ojk-seojk` | Dipertahankan |
 | `ri-pp` | **Dihapus secara sengaja** — jangan heran jika tidak ada |
 | `ri-uu` | **Dihapus secara sengaja** — jangan heran jika tidak ada |
-| `uu-konsolidasi` | Dipertahankan — konsolidasi menjaga provenance |
 
 **Untuk `ri-pp` dan `ri-uu`:** Lampiran umumnya berisi tabel/formulir yang tidak membawa makna hukum normatif dalam format teks. Jika isi lampiran diperlukan, gunakan file `.raw.txt` (output tahap `extract`) sebagai sumber lengkap.
 
@@ -117,15 +114,12 @@ Perlakuan berbeda tergantung profile:
 | ` - 1 -` | Nomor halaman |
 | `https://` | URL apapun |
 
-**Untuk profil RI (ri-pp, ri-uu, uu-konsolidasi):**
+**Untuk profil RI (ri-pp, ri-uu):**
 
 | Pola yang dicari | Yang seharusnya tidak ada |
 |-----------------|--------------------------|
-| `DIUNDUH PADA` | Footer personal download |
-| `www.hukumonline.com` | Header domain hukumonline |
 | `Menemukan kesalahan ketik` | Banner laporan typo |
 | `SK No` | Penanda dokumen per halaman (SALINAN) |
-| `EIEtrN` | Artefak garbled kop surat hukumonline |
 
 **Yang diharapkan:** Tidak ada hasil ditemukan untuk semua pola di atas.
 
@@ -146,23 +140,6 @@ Perlakuan berbeda tergantung profile:
 
 ---
 
-### ✅ Langkah Tambahan untuk `uu-konsolidasi`: Cek Anotasi
-
-**Yang diperiksa:** Apakah informasi anotasi perubahan hukum dipertahankan?
-
-Cari di output:
-
-| Pola | Contoh |
-|------|--------|
-| `UNDANG-UNDANG NOMOR ... TAHUN ...` | Penanda UU yang mengubah Pasal |
-| `PUTUSAN MAHKAMAH KONSTITUSI NOMOR` | Anotasi putusan MK |
-| `Update` | Tanggal konsolidasi (misal: `Update: Januari 2026`) |
-| `SEBAGAIMANA DIUBAH OLEH` | Daftar UU pengubah |
-
-**Yang diharapkan:** Semua pola di atas ditemukan di output.
-
----
-
 ## Skala Keputusan
 
 | Temuan | Tindakan |
@@ -177,7 +154,7 @@ Cari di output:
 
 Jika output tidak sesuai harapan, buka issue di GitHub dengan menyertakan:
 - Nama file PDF (tanpa mengunggah konten dokumen)
-- Profile yang digunakan (`ojk-pojk`, `ojk-seojk`, `ri-pp`, `ri-uu`, atau `uu-konsolidasi`)
+- Profile yang digunakan (`ojk-pojk`, `ojk-seojk`, `ri-pp`, atau `ri-uu`)
 - Screenshot atau kutipan teks yang bermasalah
 - Nomor Pasal atau bagian spesifik yang bermasalah
 

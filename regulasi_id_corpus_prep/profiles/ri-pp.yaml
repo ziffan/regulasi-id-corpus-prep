@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # Profile: ri-pp — Peraturan Pemerintah Republik Indonesia
-# Covers kedua sumber PDF: peraturan.go.id (UPPERCASE) dan hukumonline.com (lowercase)
+# Covers sumber PDF peraturan.go.id
 
 metadata:
   name: ri-pp
-  description: "PP (Peraturan Pemerintah) RI — covers peraturan.go.id dan hukumonline.com"
+  description: "PP (Peraturan Pemerintah) RI — sumber PDF peraturan.go.id"
   version: "1.0.0"
   document_types:
     - PP
@@ -22,13 +22,7 @@ rules:
     flags: [IGNORECASE]
 
 
-  # Hapus footer personal download peraturan.go.id: "NAMA | DIUNDUH PADA ..."
-  - name: remove_personal_footer
-    type: noise_removal
-    pattern: '[A-Z][A-Z ]{2,}\|\s*DIUNDUH PADA[^\n]*'
-    replacement: ''
-
-  # Hapus penanda dokumen SK di tiap halaman (kedua sumber)
+  # Hapus penanda dokumen SK di tiap halaman
   # Covers: "SK No255E44A", "SK No2756764", "SK No 255843 A", "SK No255&43A"
   # [\w&,\.]+ menangkap semua format alfanumerik termasuk karakter khusus
   # (?:[ \t]+[A-Z])? menangkap trailing " A" (format peraturan.go.id) — pakai [ \t] bukan \s
@@ -68,7 +62,7 @@ rules:
     replacement: ''
     flags: [MULTILINE]
 
-  # Hapus nomor halaman — hukumonline: "-2-" / peraturan.go.id: "- 2 -"
+  # Hapus nomor halaman: "- 2 -" dan varian tanpa spasi "-2-"
   - name: remove_page_numbers
     type: noise_removal
     pattern: '\s*-\s*\d+\s*-\s*'
@@ -90,7 +84,7 @@ rules:
     replacement: ''
 
   # Hapus notice publikasi "LEMBARAN NEGARA" / "TAMBAHAN LEMBARAN NEGARA" (ALL CAPS)
-  # Cover varian garbled hukumonline: "INDONESI.A", "INDONESI" disingkat, dll.
+  # INDONESI[^\n]* cover varian garbled: "INDONESI.A", "INDONESI" disingkat, dll.
   # Aman: referensi dalam teks pakai Title Case — "Lembaran Negara" tidak terpengaruh
   - name: remove_lembaran_negara
     type: noise_removal
@@ -104,7 +98,7 @@ rules:
     type: whitespace_normalize
 
   # Hapus artefak karakter tunggal di awal dokumen (setelah normalize)
-  # Hukumonline: "l PERATURAN..." / peraturan.go.id: "f, PERATURAN..."
+  # Contoh: "l PERATURAN..." atau "f, PERATURAN..."
   # Satu karakter (huruf kecil/digit) diikuti opsional koma/titik lalu spasi
   - name: remove_leading_artifact
     type: noise_removal
@@ -190,6 +184,5 @@ validation:
   content_marker_label: "Pasal"
   noise_check_patterns:
     - 'SK\s+No'
-    - 'DIUNDUH PADA'
     - 'Menemukan kesalahan ketik'
     - '\s*-\s*\d+\s*-\s*'

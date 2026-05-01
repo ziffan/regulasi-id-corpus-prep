@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # Profile: ri-uu — Undang-Undang Republik Indonesia
-# Covers kedua sumber PDF: peraturan.go.id (UPPERCASE) dan hukumonline.com (lowercase)
+# Covers sumber PDF peraturan.go.id
 
 metadata:
   name: ri-uu
-  description: "UU (Undang-Undang) RI — covers peraturan.go.id dan hukumonline.com"
+  description: "UU (Undang-Undang) RI — sumber PDF peraturan.go.id"
   version: "1.0.0"
   document_types:
     - UU
@@ -21,14 +21,7 @@ rules:
     replacement: ''
     flags: [IGNORECASE]
 
-  # Hapus footer personal download peraturan.go.id: "NAMA | DIUNDUH PADA ..."
-  # Covers varian dengan nomor halaman: "NAMA | DIUNDUH PADA 01 MEI 2026  1/47"
-  - name: remove_personal_footer
-    type: noise_removal
-    pattern: '[A-Z][A-Z ]{2,}\|\s*DIUNDUH PADA[^\n]*'
-    replacement: ''
-
-  # Hapus penanda dokumen SK di tiap halaman (kedua sumber)
+  # Hapus penanda dokumen SK di tiap halaman
   # (?:[ \t]+[A-Z])? pakai [ \t] bukan \s agar tidak konsumsi newline
   - name: remove_sk_markers
     type: noise_removal
@@ -67,21 +60,6 @@ rules:
   - name: remove_page_header_indonesia_truncated
     type: noise_removal
     pattern: '^\s*(?:[A-Z]{1,6}\s+)?INDONESIA\s*$'
-    replacement: ''
-    flags: [MULTILINE]
-
-  # Hapus varian garbled PRESIDEN yang berakhiran EIEtrN (hukumonline)
-  # Cover: "iIitrEIEtrN", ";*trEIEtrN", "LIrtrEIEtrN", "EEI-iEIEtrN"
-  - name: remove_garbled_kop_eitrn
-    type: noise_removal
-    pattern: '[^\n]*EIEtrN[^\n]*'
-    replacement: ''
-
-  # Hapus varian garbled kop yang mengandung kurung kurawal (OCR rusak parah)
-  # Cover: "T{Irr;IriilTlr.I,IrEF{a" (varian hukumonline tertentu)
-  - name: remove_garbled_kop_brace
-    type: noise_removal
-    pattern: '^\s*\w+\{[^\n]*$'
     replacement: ''
     flags: [MULTILINE]
 
@@ -150,7 +128,7 @@ rules:
     newlines_before: 4
 
   # Frasa pembuka preamble
-  # \s* (opsional) untuk handle "RAHMATTUHAN" (garbled merge dari hukumonline)
+  # \s* (opsional) untuk handle "RAHMATTUHAN" (garbled merge dari beberapa sumber PDF)
   - name: split_before_dengan_rahmat
     type: structure_split
     pattern: 'DENGAN\s+RAHMAT\s*TUHAN\s+YANG\s+MAHA\s+ESA'
@@ -189,7 +167,7 @@ rules:
     newlines_before: 2
 
   # Ayat: (1), (2), (1a) — sub-Pasal
-  # [1l\d]+ termasuk OCR error (l) untuk (1) di sumber hukumonline
+  # [1l\d]+ termasuk OCR error l→1 dari sumber scan
   - name: split_before_ayat
     type: structure_split
     pattern: '\([1l\d]+[a-z]?\)'
@@ -226,7 +204,5 @@ validation:
   content_marker_label: "Pasal"
   noise_check_patterns:
     - 'SK\s+No'
-    - 'DIUNDUH PADA'
     - 'Menemukan kesalahan ketik'
     - '\s*-\s*\d+\s*-\s*'
-    - 'EIEtrN'

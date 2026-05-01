@@ -9,12 +9,10 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [0.2.0] - 2026-05-01
 
 ### Added
-- Profile `ri-pp` (PP Peraturan Pemerintah RI) — covers peraturan.go.id dan hukumonline.com;
+- Profile `ri-pp` (PP Peraturan Pemerintah RI) — sumber PDF peraturan.go.id;
   noise removal: SK marker, kop garbled, nomor halaman, continuation marker, LAMPIRAN, LEMBARAN NEGARA.
-- Profile `ri-uu` (UU Undang-Undang RI) — covers peraturan.go.id (SALINAN) dan hukumonline.com;
-  garbled kop surat (family EIEtrN dan brace), nomor halaman satu-sisi, Pasal Romawi dan Arab.
-- Profile `uu-konsolidasi` — UU Konsolidasi hukumonline; mempertahankan anotasi Putusan MK,
-  referensi UU/PERPU pengubah, dan Penjelasan Pasal terintegrasi per Pasal.
+- Profile `ri-uu` (UU Undang-Undang RI) — sumber PDF peraturan.go.id (SALINAN);
+  nomor halaman satu-sisi, kop PRESIDEN/REPUBLIK INDONESIA garbled, Pasal Romawi dan Arab.
 - Flag `--format [txt|md]` pada subcommand `normalize` dan `run` (default: `txt`).
   Saat `--format md` dipilih, output ditulis ke `.md` dengan heading Markdown sesuai profil.
 - Field `markdown_headings` (opsional) pada schema Profile: list `{pattern, level, flags}`
@@ -23,9 +21,8 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Field `output_format` di `.meta.json` mencatat format yang dipakai (`txt` atau `md`).
 
 ### Notes
-- Semua profile RI (ri-pp, ri-uu) menghapus LAMPIRAN dan LEMBARAN NEGARA secara otomatis.
-  uu-konsolidasi mempertahankan keduanya sebagai informasi provenance.
-- 105/105 tests pass (naik dari 40 di v0.1.0).
+- Profile RI (ri-pp, ri-uu) menghapus LAMPIRAN dan LEMBARAN NEGARA secara otomatis.
+- 79/79 tests pass (naik dari 40 di v0.1.0).
 
 ## [0.1.0] - 2026-04-29 — PyPI: `pip install regulasi-id-corpus-prep`
 

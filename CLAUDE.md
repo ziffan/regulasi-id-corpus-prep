@@ -18,7 +18,6 @@ regulasi_id_corpus_prep/
   profiles/       # Built-in profiles
     ojk-pojk.yaml, ojk-seojk.yaml
     ri-pp.yaml, ri-uu.yaml
-    uu-konsolidasi.yaml
     _template.yaml
 tests/
   conftest.py     # Fixtures: sample PDF path, empty PDF generator
@@ -49,11 +48,9 @@ regulasi-id-corpus-prep list-profiles
 
 ### Profile RI
 
-- **`ri-pp`**: Peraturan Pemerintah RI (peraturan.go.id, hukumonline.com) ✓
-- **`ri-uu`**: Undang-Undang RI (peraturan.go.id, hukumonline.com SALINAN) ✓  
+- **`ri-pp`**: Peraturan Pemerintah RI — sumber PDF peraturan.go.id ✓
+- **`ri-uu`**: Undang-Undang RI — sumber PDF peraturan.go.id (SALINAN) ✓  
   Referensi PDF: `examples/sample-input/UU_NO_1_2026.pdf`, `uu-no-1-tahun-2026.pdf`
-- **`uu-konsolidasi`**: UU Konsolidasi hukumonline (teks terintegrasi + perubahan + anotasi Putusan MK) ✓  
-  Referensi PDF: `examples/sample-input/UU_NO_1_2023_KNS.pdf`, `UU_NO_13_2003_REV-JAN26_KNSUM.pdf`
 
 ### Fitur Markdown output (`--format md`) ✓
 
@@ -61,11 +58,11 @@ Flag `--format [txt|md]` di `normalize` dan `run` (default: `txt`). Saat `md` di
 - Output: `.md` + `.meta.json`, field `output_format` dicatat di meta
 - `profile.py`: model `MarkdownHeading` baru (`pattern`, `level` 1–6, `flags`); field `markdown_headings` di `Profile` (default kosong — backward compatible)
 - `normalize.py`: `_apply_markdown_headings()` dijalankan per-baris setelah semua rules selesai dan empty lines dihapus; menggunakan `re.match` (bukan fullmatch) agar pola partial-line seperti `BAB\s+[IVX]+` cocok dengan `BAB I KETENTUAN UMUM`
-- Semua 5 profile sudah punya `markdown_headings`: BAB→`##`, Pasal→`###`, Penjelasan Pasal (uu-konsolidasi)→`####`, bagian Romawi SEOJK→`##`, PENJELASAN (ri-pp/ri-uu)→`##`
+- Semua 4 profile built-in sudah punya `markdown_headings`: BAB→`##`, Pasal→`###`, bagian Romawi SEOJK→`##`, PENJELASAN (ri-pp/ri-uu)→`##`
 
 ### Totals v0.2.0
 
-- 105/105 tests pass
+- 79/79 tests pass
 
 ## Aturan Penting
 
@@ -123,7 +120,7 @@ Output rule N menjadi input rule N+1. Urutan rule dalam YAML menentukan hasil. `
 
 ---
 
-## Pitfalls Profil — Pelajaran dari Pengerjaan ri-uu & uu-konsolidasi
+## Pitfalls Profil — Pelajaran dari Pengerjaan ri-uu
 
 ### 1. Pola split yang saling tumpang-tindih → pakai negative lookbehind
 
@@ -203,10 +200,6 @@ YAML profile menggunakan em-dash (`—`) di komentar. Jika Edit tool gagal denga
 ### peraturan.go.id — SALINAN UU/PP (kop surat bergambar)
 
 Noise khas:
-- **Garbled kop — family EIEtrN**: `iIitrEIEtrN`, `;*trEIEtrN`, `LIrtrEIEtrN`, `EEI-iEIEtrN`  
-  Pattern: `[^\n]*EIEtrN[^\n]*`
-- **Garbled kop — family brace**: `T{Irr;IriilTlr.I,IrEF{a` dan variannya  
-  Pattern: `^\s*\w+\{[^\n]*` (MULTILINE)
 - **Garbled header halaman**: `REPUEUK INDONESIA`, `K INDONESIA`  
   Pattern: `^\s*(?:[A-Z]{1,6}\s+)?INDONESIA\s*$` (MULTILINE)
 - **Nomor halaman dua sisi**: `- 3 -`, `- 12 -`  
@@ -219,16 +212,6 @@ Noise khas:
   Pattern: `SK\s+No\s+\w+`
 - **Continuation marker**: `. .  .`
 
-### hukumonline.com — UU/PP reguler & konsolidasi
-
-Noise khas:
-- **Personal footer**: `ZIFFANY FIRDINAL | DIUNDUH PADA 01 MEI 2026`  
-  Pattern: `[A-Z][A-Z ]{2,}\|\s*DIUNDUH PADA[^\n]*`
-- **Header domain**: `www.hukumonline.com`  
-  Pattern: `^\s*www\.hukumonline\.com[^\n]*$` (MULTILINE)
-- **Banner laporan typo**: `Menemukan kesalahan ketik dalam dokumen? Klik di sini...`  
-  Pattern: `Menemukan kesalahan ketik[^\n]*` (IGNORECASE)
-
 ---
 
 ## Keputusan Desain per Format Dokumen
@@ -238,12 +221,6 @@ Noise khas:
 - Section **LEMBARAN NEGARA** dihapus
 - Pasal menggunakan angka Romawi (Pasal I, II) untuk UU Omnibus; angka Arab untuk UU biasa  
   Pattern aman: `Pasal\s+(?:[IVX][IVXLCDM]*|\d+[A-Z]?)`
-
-### uu-konsolidasi
-- **LAMPIRAN dan LEMBARAN NEGARA DIPERTAHANKAN** — informasi provenance dokumen sumber
-- **Penjelasan terintegrasi per Pasal** (`Penjelasan Pasal N` langsung setelah isi Pasal) — JANGAN tambah split untuk `PENJELASAN` generik karena tidak ada section PENJELASAN terpisah di akhir
-- Anotasi Putusan MK dan referensi UU/PERPU pengubah di bawah Pasal harus dipertahankan
-- Gunakan `(?<!Penjelasan )` lookbehind pada `split_before_pasal` untuk mencegah `Penjelasan Pasal N` terpecah
 
 ---
 
@@ -268,8 +245,8 @@ Reference PDFs ada di `D:\HackathonOpus4.7\pdf-aturan\`. Untuk verifikasi setela
 
 ## Status Terkini — v0.2.0 SELESAI (2026-05-01)
 
-- 105/105 tests pass
-- 5 built-in profiles: `ojk-pojk`, `ojk-seojk`, `ri-pp`, `ri-uu`, `uu-konsolidasi`
+- 79/79 tests pass
+- 4 built-in profiles: `ojk-pojk`, `ojk-seojk`, `ri-pp`, `ri-uu`
 - `--format md` tersedia di `normalize` dan `run`
 - POJK/SEOJK diverifikasi 100.00% terhadap 4 PDF LexHarmoni corpus
 - PyPI: `pip install regulasi-id-corpus-prep` (latest release: v0.1.0; v0.2.0 belum di-tag)

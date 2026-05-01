@@ -131,35 +131,12 @@ RAW_PP_PGI = (
     "DENGAN RAHMAT TUHAN YANG MAHA ESA\n"
     "PRESIDEN REPUBLIK INDONESIA,\n"
     "Menimbang : a. bahwa hal ini penting.\n"
-    "ZIFFANY FIRDINAL | DIUNDUH PADA 01 MEI 2026\n"
     "SK No 255843 A\n"
     "PRESIDEN\n"
     "REPUBLIK INDONESIA\n"
     "- 2 -\n"
     "Mengingat : 1. Pasal 5 ayat (2) UUD 1945.\n"
     "MEMUTUSKAN :\n"
-    "Menetapkan : PERATURAN PEMERINTAH TENTANG SESUATU.\n"
-    "BAB I KETENTUAN UMUM\n"
-    "Pasal 1 (1) Definisi. (2) Definisi kedua.\n"
-    "Pasal 2 Aturan lain berlaku."
-)
-
-RAW_PP_HO = (
-    "l\n"
-    "SALINAN\n"
-    "FNESIDEN\n"
-    "REPUEUK INDONESIA\n"
-    "PERATURAN PEMERINTAH REPUBLIK INDONESIA NOMOR 22 TAHUN 2025 TENTANG SESUATU\n"
-    "DENGAN RAHMAT TUHAN YANG MAHA ESA\n"
-    "PRESIDEN REPUBLIK INDONESIA,\n"
-    "Menimbang : a. bahwa hal ini penting. . . .\n"
-    "SK No255&43A\n"
-    "FNESIDEN\n"
-    "REPUEUK INDONESIA\n"
-    "-2-\n"
-    "Menimbang : a. bahwa hal ini penting.\n"
-    "Mengingat : 1. Pasal 5 ayat (2) UUD 1945.\n"
-    "MEMUTUSKAN:\n"
     "Menetapkan : PERATURAN PEMERINTAH TENTANG SESUATU.\n"
     "BAB I KETENTUAN UMUM\n"
     "Pasal 1 (1) Definisi. (2) Definisi kedua.\n"
@@ -184,19 +161,6 @@ def raw_pp_pgi_file(tmp_path: Path) -> Path:
     return p
 
 
-@pytest.fixture
-def raw_pp_ho_file(tmp_path: Path) -> Path:
-    p = tmp_path / "pp_ho.raw.txt"
-    p.write_text(RAW_PP_HO, encoding="utf-8")
-    return p
-
-
-def test_ri_pp_removes_personal_footer(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
-    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
-    content = txt.read_text(encoding="utf-8")
-    assert "DIUNDUH PADA" not in content
-
-
 def test_ri_pp_removes_menemukan_kesalahan(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
     txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
     content = txt.read_text(encoding="utf-8")
@@ -205,12 +169,6 @@ def test_ri_pp_removes_menemukan_kesalahan(tmp_path: Path, raw_pp_pgi_file: Path
 
 def test_ri_pp_removes_sk_markers_pgi(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
     txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
-    content = txt.read_text(encoding="utf-8")
-    assert "SK No" not in content
-
-
-def test_ri_pp_removes_sk_markers_ho(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
-    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
     content = txt.read_text(encoding="utf-8")
     assert "SK No" not in content
 
@@ -227,22 +185,15 @@ def test_ri_pp_removes_page_numbers(tmp_path: Path, raw_pp_pgi_file: Path, ripp_
     assert "- 2 -" not in content
 
 
-def test_ri_pp_removes_page_header_garbled_ho(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
-    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
-    content = txt.read_text(encoding="utf-8")
-    assert "FNESIDEN" not in content
-    assert "REPUEUK" not in content
-
-
-def test_ri_pp_removes_lampiran(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
-    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+def test_ri_pp_removes_lampiran(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
     content = txt.read_text(encoding="utf-8")
     assert "Tabel lampiran" not in content
     assert "LAMPIRAN" not in content
 
 
-def test_ri_pp_removes_tambahan_lembaran_negara(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
-    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+def test_ri_pp_removes_tambahan_lembaran_negara(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
     content = txt.read_text(encoding="utf-8")
     assert "TAMBAHAN LEMBARAN NEGARA" not in content
 
@@ -267,8 +218,8 @@ def test_ri_pp_split_ayat(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -
     assert len(ayat_lines) >= 1
 
 
-def test_ri_pp_penjelasan_separated(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
-    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+def test_ri_pp_penjelasan_separated(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
     lines = txt.read_text(encoding="utf-8").splitlines()
     assert any(l == "PENJELASAN" or l.startswith("PENJELASAN ") for l in lines)
 
@@ -303,7 +254,6 @@ RAW_UU_PGI = (
     "DENGAN RAHMAT TUHAN YANG MAHA ESA\n"
     "PRESIDEN REPUBLIK INDONESIA,\n"
     "Menimbang : a. bahwa hal ini penting.\n"
-    "ZIFFANY FIRDINAL | DIUNDUH PADA 01 MEI 2026                                1/47\n"
     "SK No 273836 A\n"
     "PRESIDEN\n"
     "REPUBLIK INDONESIA\n"
@@ -320,37 +270,9 @@ RAW_UU_PGI = (
     "Pasal II Aturan lain berlaku.\n"
     "PENJELASAN ATAS\n"
     "UNDANG-UNDANG NOMOR 1 TAHUN 2026\n"
-    "LEMBARAN NEGARA REPUBLIK INDONESIA TAHUN 2026 NOMOR 1\n"
-)
-
-RAW_UU_HO = (
-    "T{Irr;IriilTlr.I,IrEF{a\n"
-    "UNDANG-UNDANG REPUBLIK INDONESIA NOMOR 1 TAHUN 2026 TENTANG PENYESUAIAN PIDANA\n"
-    "DENGAN RAHMATTUHAN YANG MAHA ESA\n"
-    "PRESIDEN REPUBLIK INDONESIA,\n"
-    "Menimbang : a. bahwa hal ini penting. . . .\n"
-    "SK No273836A\n"
-    "iIitrEIEtrN\n"
-    "REPUEUK INDONESIA\n"
-    "-3-\n"
-    "Mengingat : 1. Pasal 5 ayat (1) UUD 1945.\n"
-    "Dengan Persetujuan Bersama\n"
-    "DEWAN PERWAKILAN RAKYAT REPUBLIK INDONESIA\n"
-    "dan\n"
-    "PRESIDEN REPUBLIK INDONESIA\n"
-    "MEMUTUSKAN:\n"
-    "Menetapkan : UNDANG-UNDANG TENTANG PENYESUAIAN PIDANA.\n"
-    "SK No273837A\n"
-    "K INDONESIA\n"
-    "4-\n"
-    "BAB I KETENTUAN UMUM\n"
-    "Pasal I (1) Definisi pertama. (l) OCR error. (2) Definisi kedua.\n"
-    "Pasal II Aturan lain berlaku.\n"
-    "PENJELASAN ATAS\n"
-    "UNDANG-UNDANG NOMOR 1 TAHUN 2026\n"
-    "TAMBAHAN LEMBARAN NEGARA REPUBLIK INDONESIA NOMOR 7153\n"
     "LAMPIRAN I\n"
     "Tabel lampiran yang dikecualikan.\n"
+    "LEMBARAN NEGARA REPUBLIK INDONESIA TAHUN 2026 NOMOR 1\n"
 )
 
 
@@ -366,30 +288,13 @@ def raw_uu_pgi_file(tmp_path: Path) -> Path:
     return p
 
 
-@pytest.fixture
-def raw_uu_ho_file(tmp_path: Path) -> Path:
-    p = tmp_path / "uu_ho.raw.txt"
-    p.write_text(RAW_UU_HO, encoding="utf-8")
-    return p
-
-
 def test_ri_uu_removes_menemukan_kesalahan(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
     txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
     assert "Menemukan kesalahan ketik" not in txt.read_text(encoding="utf-8")
 
 
-def test_ri_uu_removes_personal_footer(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
-    assert "DIUNDUH PADA" not in txt.read_text(encoding="utf-8")
-
-
 def test_ri_uu_removes_sk_markers_pgi(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
     txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
-    assert "SK No" not in txt.read_text(encoding="utf-8")
-
-
-def test_ri_uu_removes_sk_markers_ho(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
     assert "SK No" not in txt.read_text(encoding="utf-8")
 
 
@@ -403,35 +308,8 @@ def test_ri_uu_removes_page_numbers_standard(tmp_path: Path, raw_uu_pgi_file: Pa
     assert "- 2 -" not in txt.read_text(encoding="utf-8")
 
 
-def test_ri_uu_removes_page_numbers_one_dash(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
-    content = txt.read_text(encoding="utf-8")
-    assert "-3-" not in content
-    lines = content.splitlines()
-    assert not any(l.strip() in ("4-", "-2") for l in lines)
-
-
-def test_ri_uu_removes_garbled_kop_eitrn(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
-    assert "EIEtrN" not in txt.read_text(encoding="utf-8")
-
-
-def test_ri_uu_removes_garbled_kop_brace(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
-    assert "T{Irr" not in txt.read_text(encoding="utf-8")
-
-
-def test_ri_uu_removes_page_header_garbled_ho(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
-    content = txt.read_text(encoding="utf-8")
-    assert "REPUEUK" not in content
-    # "K INDONESIA" berdiri sendiri harus hilang (bukan substring dari "REPUBLIK INDONESIA")
-    lines = content.splitlines()
-    assert not any(l.strip() == "K INDONESIA" for l in lines)
-
-
-def test_ri_uu_removes_lampiran(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+def test_ri_uu_removes_lampiran(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
     content = txt.read_text(encoding="utf-8")
     assert "Tabel lampiran" not in content
     assert "LAMPIRAN" not in content
@@ -462,8 +340,8 @@ def test_ri_uu_split_ayat(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -
     assert len(ayat_lines) >= 1
 
 
-def test_ri_uu_penjelasan_separated(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
-    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+def test_ri_uu_penjelasan_separated(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
     lines = txt.read_text(encoding="utf-8").splitlines()
     assert any(l == "PENJELASAN" or l.startswith("PENJELASAN ") for l in lines)
 
