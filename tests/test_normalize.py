@@ -115,3 +115,175 @@ def test_determinism(raw_pojk_file: Path, tmp_path: Path, pojk_profile) -> None:
 def test_output_filename_derived_from_raw_txt(raw_pojk_file: Path, tmp_path: Path, pojk_profile) -> None:
     txt, _ = normalize(raw_pojk_file, pojk_profile, output_dir=tmp_path)
     assert txt.name == "test.txt"
+
+
+# ---------------------------------------------------------------------------
+# ri-pp profile tests
+# ---------------------------------------------------------------------------
+
+RAW_PP_PGI = (
+    "Menemukan kesalahan ketik dalam dokumen? Klik di sini untuk perbaikan.\n"
+    "SALINAN    ★\n"
+    "PRESIDEN\n"
+    "REPUBLIK INDONESIA\n"
+    "PERATURAN PEMERINTAH REPUBLIK INDONESIA NOMOR 22 TAHUN 2025 TENTANG SESUATU\n"
+    "DENGAN RAHMAT TUHAN YANG MAHA ESA\n"
+    "PRESIDEN REPUBLIK INDONESIA,\n"
+    "Menimbang : a. bahwa hal ini penting.\n"
+    "ZIFFANY FIRDINAL | DIUNDUH PADA 01 MEI 2026\n"
+    "SK No 255843 A\n"
+    "PRESIDEN\n"
+    "REPUBLIK INDONESIA\n"
+    "- 2 -\n"
+    "Mengingat : 1. Pasal 5 ayat (2) UUD 1945.\n"
+    "MEMUTUSKAN :\n"
+    "Menetapkan : PERATURAN PEMERINTAH TENTANG SESUATU.\n"
+    "BAB I KETENTUAN UMUM\n"
+    "Pasal 1 (1) Definisi. (2) Definisi kedua.\n"
+    "Pasal 2 Aturan lain berlaku."
+)
+
+RAW_PP_HO = (
+    "l\n"
+    "SALINAN\n"
+    "FNESIDEN\n"
+    "REPUEUK INDONESIA\n"
+    "PERATURAN PEMERINTAH REPUBLIK INDONESIA NOMOR 22 TAHUN 2025 TENTANG SESUATU\n"
+    "DENGAN RAHMAT TUHAN YANG MAHA ESA\n"
+    "PRESIDEN REPUBLIK INDONESIA,\n"
+    "Menimbang : a. bahwa hal ini penting. . . .\n"
+    "SK No255&43A\n"
+    "FNESIDEN\n"
+    "REPUEUK INDONESIA\n"
+    "-2-\n"
+    "Menimbang : a. bahwa hal ini penting.\n"
+    "Mengingat : 1. Pasal 5 ayat (2) UUD 1945.\n"
+    "MEMUTUSKAN:\n"
+    "Menetapkan : PERATURAN PEMERINTAH TENTANG SESUATU.\n"
+    "BAB I KETENTUAN UMUM\n"
+    "Pasal 1 (1) Definisi. (2) Definisi kedua.\n"
+    "Pasal 2 Aturan lain berlaku.\n"
+    "PENJELASAN\n"
+    "I. UMUM\n"
+    "LAMPIRAN I\n"
+    "Tabel lampiran yang dikecualikan.\n"
+    "TAMBAHAN LEMBARAN NEGARA REPUBLIK INDONESIA NOMOR 7094\n"
+)
+
+
+@pytest.fixture
+def ripp_profile():
+    return load_profile("ri-pp")
+
+
+@pytest.fixture
+def raw_pp_pgi_file(tmp_path: Path) -> Path:
+    p = tmp_path / "pp_pgi.raw.txt"
+    p.write_text(RAW_PP_PGI, encoding="utf-8")
+    return p
+
+
+@pytest.fixture
+def raw_pp_ho_file(tmp_path: Path) -> Path:
+    p = tmp_path / "pp_ho.raw.txt"
+    p.write_text(RAW_PP_HO, encoding="utf-8")
+    return p
+
+
+def test_ri_pp_removes_personal_footer(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "DIUNDUH PADA" not in content
+
+
+def test_ri_pp_removes_menemukan_kesalahan(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "Menemukan kesalahan ketik" not in content
+
+
+def test_ri_pp_removes_sk_markers_pgi(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "SK No" not in content
+
+
+def test_ri_pp_removes_sk_markers_ho(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "SK No" not in content
+
+
+def test_ri_pp_removes_salinan(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "SALINAN" not in content
+
+
+def test_ri_pp_removes_page_numbers(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "- 2 -" not in content
+
+
+def test_ri_pp_removes_page_header_garbled_ho(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "FNESIDEN" not in content
+    assert "REPUEUK" not in content
+
+
+def test_ri_pp_removes_lampiran(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "Tabel lampiran" not in content
+    assert "LAMPIRAN" not in content
+
+
+def test_ri_pp_removes_tambahan_lembaran_negara(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "TAMBAHAN LEMBARAN NEGARA" not in content
+
+
+def test_ri_pp_split_bab(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    assert any(l.startswith("BAB I") for l in lines)
+
+
+def test_ri_pp_split_pasal(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    pasal_lines = [l for l in lines if l.startswith("Pasal ")]
+    assert len(pasal_lines) >= 2
+
+
+def test_ri_pp_split_ayat(tmp_path: Path, raw_pp_pgi_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    ayat_lines = [l for l in lines if l.startswith("(")]
+    assert len(ayat_lines) >= 1
+
+
+def test_ri_pp_penjelasan_separated(tmp_path: Path, raw_pp_ho_file: Path, ripp_profile) -> None:
+    txt, _ = normalize(raw_pp_ho_file, ripp_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    assert any(l == "PENJELASAN" or l.startswith("PENJELASAN ") for l in lines)
+
+
+def test_ri_pp_meta_json_written(raw_pp_pgi_file: Path, tmp_path: Path, ripp_profile) -> None:
+    import json
+    _, meta_path = normalize(raw_pp_pgi_file, ripp_profile, output_dir=tmp_path)
+    assert meta_path.exists()
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta["profile_name"] == "ri-pp"
+    assert "rules_applied" in meta
+
+
+def test_ri_pp_determinism(raw_pp_pgi_file: Path, tmp_path: Path, ripp_profile) -> None:
+    out1 = tmp_path / "run1"
+    out2 = tmp_path / "run2"
+    txt1, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=out1)
+    txt2, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=out2)
+    assert txt1.read_text(encoding="utf-8") == txt2.read_text(encoding="utf-8")

@@ -1,0 +1,187 @@
+# SPDX-License-Identifier: Apache-2.0
+# Profile: ri-pp — Peraturan Pemerintah Republik Indonesia
+# Covers kedua sumber PDF: peraturan.go.id (UPPERCASE) dan hukumonline.com (lowercase)
+
+metadata:
+  name: ri-pp
+  description: "PP (Peraturan Pemerintah) RI — covers peraturan.go.id dan hukumonline.com"
+  version: "1.0.0"
+  document_types:
+    - PP
+
+rules:
+  # =========================================================
+  # NOISE REMOVAL — dijalankan SEBELUM whitespace_normalize
+  # =========================================================
+
+  # Hapus baris banner peraturan.go.id (selalu di baris pertama)
+  - name: remove_menemukan_kesalahan
+    type: noise_removal
+    pattern: 'Menemukan kesalahan ketik[^\n]*'
+    replacement: ''
+    flags: [IGNORECASE]
+
+
+  # Hapus footer personal download peraturan.go.id: "NAMA | DIUNDUH PADA ..."
+  - name: remove_personal_footer
+    type: noise_removal
+    pattern: '[A-Z][A-Z ]{2,}\|\s*DIUNDUH PADA[^\n]*'
+    replacement: ''
+
+  # Hapus penanda dokumen SK di tiap halaman (kedua sumber)
+  # Covers: "SK No255E44A", "SK No2756764", "SK No 255843 A", "SK No255&43A"
+  # [\w&,\.]+ menangkap semua format alfanumerik termasuk karakter khusus
+  # (?:[ \t]+[A-Z])? menangkap trailing " A" (format peraturan.go.id) — pakai [ \t] bukan \s
+  # agar tidak ikut konsumsi newline dan huruf pertama baris berikutnya
+  - name: remove_sk_markers
+    type: noise_removal
+    pattern: 'SK\s+No\.?\s*[\w&,\.]+(?:[ \t]+[A-Z])?'
+    replacement: ''
+
+  # Hapus simbol bintang dekoratif peraturan.go.id (★: / ★; / A★ / ★)
+  - name: remove_star_artifacts
+    type: noise_removal
+    pattern: '[0-9A]?\s*★\s*[;:\s]?'
+    replacement: ''
+
+  # Hapus header SALINAN beserta dekorasi trailing di baris yang sama
+  - name: remove_salinan
+    type: noise_removal
+    pattern: 'SALINAN[^\n]*'
+    replacement: ''
+
+  # Hapus baris kop surat "PRESIDEN" (atau varian garbled) yang berdiri sendiri
+  # Tidak menyentuh "PRESIDEN REPUBLIK INDONESIA," di preamble (satu baris, ada koma)
+  - name: remove_page_header_presiden_line
+    type: noise_removal
+    pattern: '^\s*(?:PRESIDEN|FNESIDEN|FRESIDEN)\s*$'
+    replacement: ''
+    flags: [MULTILINE]
+
+  # Hapus baris kop surat "REPUBLIK INDONESIA" atau semua varian garbled
+  # R[A-Z,\.]{3,10} cover: REPUEUK, REPUBLTK, R,EPUBLIK, REFUBLIK, REPUBUK
+  # [A-Z]{4,} cover: INDONESIA, TNOONESIA, INDONES.A, dan varian garbled lainnya
+  # Aman: "PRESIDEN REPUBLIK INDONESIA," ada di satu baris dengan koma (tidak match \s*$)
+  - name: remove_page_header_indonesia_line
+    type: noise_removal
+    pattern: '^\s*R[A-Z,\.]{3,10}\s+[A-Z]{4,}\s*$'
+    replacement: ''
+    flags: [MULTILINE]
+
+  # Hapus nomor halaman — hukumonline: "-2-" / peraturan.go.id: "- 2 -"
+  - name: remove_page_numbers
+    type: noise_removal
+    pattern: '\s*-\s*\d+\s*-\s*'
+    replacement: ' '
+
+  # Hapus continuation marker akhir halaman: "..." atau ". . ."
+  # Gunakan [ \t]* bukan \s* agar tidak ikut konsumsi newline
+  - name: remove_continuation_markers
+    type: noise_removal
+    pattern: '[ \t]*\.[ \t]*\.[ \t]*\.[ \t]*$'
+    replacement: ''
+    flags: [MULTILINE]
+
+  # Hapus seluruh section LAMPIRAN beserta isinya (policy: lihat README)
+  # Mencari header LAMPIRAN (opsional diikuti angka Romawi) pada barisnya sendiri
+  - name: remove_lampiran
+    type: noise_removal
+    pattern: '\n\s*LAMPIRAN(?:\s+[IVX]+)?\s*\n[\s\S]*'
+    replacement: ''
+
+  # Hapus notice publikasi "LEMBARAN NEGARA" / "TAMBAHAN LEMBARAN NEGARA" (ALL CAPS)
+  # Cover varian garbled hukumonline: "INDONESI.A", "INDONESI" disingkat, dll.
+  # Aman: referensi dalam teks pakai Title Case — "Lembaran Negara" tidak terpengaruh
+  - name: remove_lembaran_negara
+    type: noise_removal
+    pattern: '(?:TAMBAHAN\s+)?LEMBARAN\s+NEGARA\s+REPUBLIK\s+INDONESI[^\n]*'
+    replacement: ''
+
+  # =========================================================
+  # WHITESPACE NORMALIZE
+  # =========================================================
+  - name: normalize_whitespace
+    type: whitespace_normalize
+
+  # Hapus artefak karakter tunggal di awal dokumen (setelah normalize)
+  # Hukumonline: "l PERATURAN..." / peraturan.go.id: "f, PERATURAN..."
+  # Satu karakter (huruf kecil/digit) diikuti opsional koma/titik lalu spasi
+  - name: remove_leading_artifact
+    type: noise_removal
+    pattern: '^[a-z0-9][,\.]?\s'
+    replacement: ''
+
+  # =========================================================
+  # STRUCTURE SPLIT — dijalankan SETELAH whitespace_normalize
+  # =========================================================
+
+  # Section PENJELASAN sebagai batas top-level (4 baris baru)
+  - name: split_before_penjelasan
+    type: structure_split
+    pattern: 'PENJELASAN(?:\s+ATAS)?'
+    newlines_before: 4
+
+  # Frasa pembuka preamble
+  # \s* (opsional) untuk handle "RAHMATTUHAN" (garbled merge dari peraturan.go.id)
+  - name: split_before_dengan_rahmat
+    type: structure_split
+    pattern: 'DENGAN\s+RAHMAT\s*TUHAN\s+YANG\s+MAHA\s+ESA'
+    newlines_before: 2
+
+  # Kata kunci preamble diikuti tanda titik dua
+  - name: split_before_structural_keywords
+    type: structure_split
+    pattern: '(?:Menimbang|Mengingat|MEMUTUSKAN|Menetapkan)\s*:'
+    newlines_before: 2
+    flags: [IGNORECASE]
+
+  # BAB (level 1), termasuk suffix huruf sisipan: BAB IXA
+  - name: split_before_bab
+    type: structure_split
+    pattern: 'BAB\s+[IVXLCDM]+[A-Z]?'
+    newlines_before: 2
+
+  # Marker section Batang Tubuh
+  - name: split_before_ketentuan_section
+    type: structure_split
+    pattern: 'KETENTUAN\s+(?:UMUM|PIDANA|PERALIHAN|PENUTUP)'
+    newlines_before: 2
+
+  # Pasal (unit utama) — Arabic, termasuk suffix huruf sisipan: Pasal 28A
+  - name: split_before_pasal
+    type: structure_split
+    pattern: 'Pasal\s+\d+[A-Z]?'
+    newlines_before: 2
+
+  # Ayat: (1), (2), (1a) — sub-Pasal
+  - name: split_before_ayat
+    type: structure_split
+    pattern: '\(\d+[a-z]?\)'
+    newlines_before: 1
+    space_after: true
+
+  # Poin angka: 1., 2., dst.
+  - name: split_before_numbered_points
+    type: structure_split
+    pattern: '\d+\.'
+    newlines_before: 1
+    space_after: true
+
+  # Poin huruf: a., b., dst. (hanya jika diikuti kata kunci hukum — hindari false positive)
+  - name: split_before_letter_points
+    type: structure_split
+    pattern: '[a-z]\.'
+    newlines_before: 1
+    requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi|untuk|dengan|terhadap|setiap|apabila|kepada|bahwa|perkara|ketentuan|pidana|daerah|hukum'
+
+validation:
+  title_keywords:
+    - "PERATURAN PEMERINTAH REPUBLIK INDONESIA"
+    - "PERATURAN PEMERINTAH"
+  content_marker_pattern: 'Pasal\s+\d+'
+  content_marker_label: "Pasal"
+  noise_check_patterns:
+    - 'SK\s+No'
+    - 'DIUNDUH PADA'
+    - 'Menemukan kesalahan ketik'
+    - '\s*-\s*\d+\s*-\s*'

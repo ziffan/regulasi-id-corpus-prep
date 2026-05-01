@@ -41,13 +41,27 @@ regulasi-id-corpus-prep run examples/sample-input/SEOJK-19-2023.pdf \
 regulasi-id-corpus-prep list-profiles
 ```
 
+## Rencana v0.2.0
+
+### Profile `ri-uu` (Undang-Undang RI)
+Profile baru untuk dokumen UU. Dua sumber PDF sudah dianalisis:
+- **Sumber SALINAN** (`examples/sample-input/uu-no-1-tahun-2026.pdf`): kop surat bergambar → teks rusak (`REPUEUK INDONESIA`, `iIitrEIEtrN`, dll.), `SK No XXXXXX A` tiap halaman, nomor halaman `-N-`, continuation marker `. .  .`
+- **Sumber web** (`D:\PROYEK\UU_NO_1_2026.pdf`, peraturan.go.id): jauh lebih bersih, footer personal `NAMA | DIUNDUH PADA ... N/47`, baris `Menemukan kesalahan ketik...`
+
+Profile `ri-uu` harus cover **kedua sumber** sekaligus. Perbedaan UU vs POJK/SEOJK: Pasal menggunakan angka Romawi (Pasal I, Pasal II...), ada section PENJELASAN dan LAMPIRAN I/II/III.
+
+### Fitur Markdown output (`--format md`)
+Tambah flag `--format [txt|md]` ke subcommand `normalize` dan `run`. Arsitektur:
+- Profile perlu section baru `markdown_headings` (opsional): list `{pattern, level}` yang memetakan pola struktural ke heading level Markdown (`##`, `###`, dll.)
+- Output: `.md` + `.meta.json` jika `--format md`, default tetap `.txt`
+- Perubahan kode: `profile.py` (schema), `normalize.py` (MD renderer), `cli.py` (flag), semua profiles (tambah `markdown_headings`)
+
 ## Aturan Penting
 
 ### Jangan Lakukan
 
 - **Jangan ubah golden files** di `examples/sample-output/` secara manual. Jika perlu update (karena perubahan profile yang disengaja), generate ulang dengan `run` lalu commit hasilnya.
 - **Jangan collapse pipeline** menjadi satu command. Pemisahan `extract` → `normalize` adalah keputusan arsitektur yang non-negotiable (lihat `DECISIONS.md` ADR-001).
-- **Jangan tambah profile non-OJK** sebelum ada spec. Arsitektur sudah siap; profile baru (PBI, Permenkeu, dll.) direncanakan di v0.2.0.
 - **Jangan tambah OCR, scraping JDIH, atau network calls** dalam bentuk apapun.
 
 ### Harus Dilakukan

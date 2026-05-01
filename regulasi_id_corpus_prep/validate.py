@@ -14,7 +14,7 @@ from .profile import Profile
 
 _MAX_LINE_LENGTH = 2000
 _MIN_TITLE_LEN = 30
-_MAX_TITLE_LEN = 200
+_MAX_TITLE_LEN = 400
 
 
 class ValidationResult:

@@ -83,14 +83,22 @@ Untuk setiap `<nama>.pdf`, alat ini menghasilkan:
 
 ## Profile
 
-Profile adalah file YAML yang mendefinisikan aturan pembersihan untuk jenis dokumen tertentu. Dua profile bawaan tersedia:
+Profile adalah file YAML yang mendefinisikan aturan pembersihan untuk jenis dokumen tertentu. Profile bawaan yang tersedia:
 
-| Profile | Dokumen |
-|---------|---------|
-| `ojk-pojk` | POJK (Peraturan OJK) dari JDIH OJK |
-| `ojk-seojk` | SEOJK (Surat Edaran OJK) dari JDIH OJK |
+| Profile | Dokumen | Sumber |
+|---------|---------|--------|
+| `ojk-pojk` | POJK (Peraturan OJK) | JDIH OJK |
+| `ojk-seojk` | SEOJK (Surat Edaran OJK) | JDIH OJK |
+| `ri-pp` | PP (Peraturan Pemerintah RI) | peraturan.go.id, hukumonline.com |
 
 Untuk membuat profile baru (PBI, Permenkeu, dll.), lihat [docs/PROFILE_GUIDE.md](docs/PROFILE_GUIDE.md) dan gunakan `regulasi_id_corpus_prep/profiles/_template.yaml` sebagai titik awal.
+
+### Catatan: Section LAMPIRAN Dikecualikan
+
+Profile `ri-pp` (dan profile RI lainnya) secara otomatis **menghapus section LAMPIRAN** beserta seluruh isinya dari output corpus. Ini adalah keputusan yang disengaja:
+
+- LAMPIRAN umumnya berisi tabel, formulir, atau gambar yang tidak membawa makna hukum normatif dalam format teks biasa.
+- Untuk kasus di mana isi LAMPIRAN relevan, gunakan file `.raw.txt` (output tahap ekstraksi) sebagai sumber teks lengkap tanpa normalisasi.
 
 ---
 
@@ -100,12 +108,12 @@ Validasi otomatis (`validate` subcommand) mengecek hal-hal teknis. Untuk memasti
 
 ---
 
-## Keterbatasan (v0.1.0)
+## Keterbatasan (v0.2.0)
 
 - **PDF born-digital saja.** PDF scan (foto regulasi) tidak dapat diproses.
 - **Bahasa Indonesia.** Dokumen berbahasa lain tidak diuji.
-- **Profile OJK saja.** Arsitektur mendukung PBI, Permenkeu, dll., tapi belum ada profile-nya.
-- **Tidak mengunduh PDF.** Pengguna perlu mengunduh PDF secara manual dari JDIH OJK.
+- **Profile terbatas.** Tersedia: POJK, SEOJK, PP. Profile PBI, UU, Permenkeu, dll. belum tersedia.
+- **Tidak mengunduh PDF.** Pengguna perlu mengunduh PDF secara manual dari sumber resmi.
 - **Tidak ada pemahaman semantik.** Output adalah teks biasa; hierarki Pasal tidak diurai.
 
 ---
