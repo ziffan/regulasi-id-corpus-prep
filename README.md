@@ -90,6 +90,7 @@ Profile adalah file YAML yang mendefinisikan aturan pembersihan untuk jenis doku
 | `ojk-pojk` | POJK (Peraturan OJK) | JDIH OJK |
 | `ojk-seojk` | SEOJK (Surat Edaran OJK) | JDIH OJK |
 | `ri-pp` | PP (Peraturan Pemerintah RI) | peraturan.go.id, hukumonline.com |
+| `ri-uu` | UU (Undang-Undang RI) | peraturan.go.id, hukumonline.com |
 
 Untuk membuat profile baru (PBI, Permenkeu, dll.), lihat [docs/PROFILE_GUIDE.md](docs/PROFILE_GUIDE.md) dan gunakan `regulasi_id_corpus_prep/profiles/_template.yaml` sebagai titik awal.
 
@@ -112,7 +113,7 @@ Validasi otomatis (`validate` subcommand) mengecek hal-hal teknis. Untuk memasti
 
 - **PDF born-digital saja.** PDF scan (foto regulasi) tidak dapat diproses.
 - **Bahasa Indonesia.** Dokumen berbahasa lain tidak diuji.
-- **Profile terbatas.** Tersedia: POJK, SEOJK, PP. Profile PBI, UU, Permenkeu, dll. belum tersedia.
+- **Profile terbatas.** Tersedia: POJK, SEOJK, PP, UU. Profile PBI, Permenkeu, dll. belum tersedia.
 - **Tidak mengunduh PDF.** Pengguna perlu mengunduh PDF secara manual dari sumber resmi.
 - **Tidak ada pemahaman semantik.** Output adalah teks biasa; hierarki Pasal tidak diurai.
 

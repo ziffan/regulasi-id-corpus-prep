@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Ziffany Firdinal
 
+import re
 from pathlib import Path
 
 import pytest
@@ -286,4 +287,199 @@ def test_ri_pp_determinism(raw_pp_pgi_file: Path, tmp_path: Path, ripp_profile) 
     out2 = tmp_path / "run2"
     txt1, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=out1)
     txt2, _ = normalize(raw_pp_pgi_file, ripp_profile, output_dir=out2)
+    assert txt1.read_text(encoding="utf-8") == txt2.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# ri-uu profile tests
+# ---------------------------------------------------------------------------
+
+RAW_UU_PGI = (
+    "Menemukan kesalahan ketik dalam dokumen? Klik di sini untuk perbaikan.\n"
+    "SALINAN    ★\n"
+    "PRESIDEN\n"
+    "REPUBUK INDONESIA\n"
+    "UNDANG-UNDANG REPUBLIK INDONESIA NOMOR 1 TAHUN 2026 TENTANG PENYESUAIAN PIDANA\n"
+    "DENGAN RAHMAT TUHAN YANG MAHA ESA\n"
+    "PRESIDEN REPUBLIK INDONESIA,\n"
+    "Menimbang : a. bahwa hal ini penting.\n"
+    "ZIFFANY FIRDINAL | DIUNDUH PADA 01 MEI 2026                                1/47\n"
+    "SK No 273836 A\n"
+    "PRESIDEN\n"
+    "REPUBLIK INDONESIA\n"
+    "- 2 -\n"
+    "Mengingat : 1. Pasal 5 ayat (1) UUD 1945.\n"
+    "Dengan Persetujuan Bersama\n"
+    "DEWAN PERWAKILAN RAKYAT REPUBLIK INDONESIA\n"
+    "dan\n"
+    "PRESIDEN REPUBLIK INDONESIA\n"
+    "MEMUTUSKAN:\n"
+    "Menetapkan : UNDANG-UNDANG TENTANG PENYESUAIAN PIDANA.\n"
+    "BAB I KETENTUAN UMUM\n"
+    "Pasal I (1) Definisi pertama. (2) Definisi kedua.\n"
+    "Pasal II Aturan lain berlaku.\n"
+    "PENJELASAN ATAS\n"
+    "UNDANG-UNDANG NOMOR 1 TAHUN 2026\n"
+    "LEMBARAN NEGARA REPUBLIK INDONESIA TAHUN 2026 NOMOR 1\n"
+)
+
+RAW_UU_HO = (
+    "T{Irr;IriilTlr.I,IrEF{a\n"
+    "UNDANG-UNDANG REPUBLIK INDONESIA NOMOR 1 TAHUN 2026 TENTANG PENYESUAIAN PIDANA\n"
+    "DENGAN RAHMATTUHAN YANG MAHA ESA\n"
+    "PRESIDEN REPUBLIK INDONESIA,\n"
+    "Menimbang : a. bahwa hal ini penting. . . .\n"
+    "SK No273836A\n"
+    "iIitrEIEtrN\n"
+    "REPUEUK INDONESIA\n"
+    "-3-\n"
+    "Mengingat : 1. Pasal 5 ayat (1) UUD 1945.\n"
+    "Dengan Persetujuan Bersama\n"
+    "DEWAN PERWAKILAN RAKYAT REPUBLIK INDONESIA\n"
+    "dan\n"
+    "PRESIDEN REPUBLIK INDONESIA\n"
+    "MEMUTUSKAN:\n"
+    "Menetapkan : UNDANG-UNDANG TENTANG PENYESUAIAN PIDANA.\n"
+    "SK No273837A\n"
+    "K INDONESIA\n"
+    "4-\n"
+    "BAB I KETENTUAN UMUM\n"
+    "Pasal I (1) Definisi pertama. (l) OCR error. (2) Definisi kedua.\n"
+    "Pasal II Aturan lain berlaku.\n"
+    "PENJELASAN ATAS\n"
+    "UNDANG-UNDANG NOMOR 1 TAHUN 2026\n"
+    "TAMBAHAN LEMBARAN NEGARA REPUBLIK INDONESIA NOMOR 7153\n"
+    "LAMPIRAN I\n"
+    "Tabel lampiran yang dikecualikan.\n"
+)
+
+
+@pytest.fixture
+def riuu_profile():
+    return load_profile("ri-uu")
+
+
+@pytest.fixture
+def raw_uu_pgi_file(tmp_path: Path) -> Path:
+    p = tmp_path / "uu_pgi.raw.txt"
+    p.write_text(RAW_UU_PGI, encoding="utf-8")
+    return p
+
+
+@pytest.fixture
+def raw_uu_ho_file(tmp_path: Path) -> Path:
+    p = tmp_path / "uu_ho.raw.txt"
+    p.write_text(RAW_UU_HO, encoding="utf-8")
+    return p
+
+
+def test_ri_uu_removes_menemukan_kesalahan(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert "Menemukan kesalahan ketik" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_personal_footer(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert "DIUNDUH PADA" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_sk_markers_pgi(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert "SK No" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_sk_markers_ho(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    assert "SK No" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_salinan(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert "SALINAN" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_page_numbers_standard(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert "- 2 -" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_page_numbers_one_dash(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "-3-" not in content
+    lines = content.splitlines()
+    assert not any(l.strip() in ("4-", "-2") for l in lines)
+
+
+def test_ri_uu_removes_garbled_kop_eitrn(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    assert "EIEtrN" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_garbled_kop_brace(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    assert "T{Irr" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_removes_page_header_garbled_ho(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "REPUEUK" not in content
+    # "K INDONESIA" berdiri sendiri harus hilang (bukan substring dari "REPUBLIK INDONESIA")
+    lines = content.splitlines()
+    assert not any(l.strip() == "K INDONESIA" for l in lines)
+
+
+def test_ri_uu_removes_lampiran(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    content = txt.read_text(encoding="utf-8")
+    assert "Tabel lampiran" not in content
+    assert "LAMPIRAN" not in content
+
+
+def test_ri_uu_removes_lembaran_negara(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert "LEMBARAN NEGARA" not in txt.read_text(encoding="utf-8")
+
+
+def test_ri_uu_split_bab(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    assert any(l.startswith("BAB I") for l in lines)
+
+
+def test_ri_uu_split_pasal_roman(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    pasal_lines = [l for l in lines if re.match(r"Pasal [IVX]", l)]
+    assert len(pasal_lines) >= 2
+
+
+def test_ri_uu_split_ayat(tmp_path: Path, raw_uu_pgi_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    ayat_lines = [l for l in lines if l.startswith("(")]
+    assert len(ayat_lines) >= 1
+
+
+def test_ri_uu_penjelasan_separated(tmp_path: Path, raw_uu_ho_file: Path, riuu_profile) -> None:
+    txt, _ = normalize(raw_uu_ho_file, riuu_profile, output_dir=tmp_path)
+    lines = txt.read_text(encoding="utf-8").splitlines()
+    assert any(l == "PENJELASAN" or l.startswith("PENJELASAN ") for l in lines)
+
+
+def test_ri_uu_meta_json_written(raw_uu_pgi_file: Path, tmp_path: Path, riuu_profile) -> None:
+    import json
+    _, meta_path = normalize(raw_uu_pgi_file, riuu_profile, output_dir=tmp_path)
+    assert meta_path.exists()
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta["profile_name"] == "ri-uu"
+    assert "rules_applied" in meta
+
+
+def test_ri_uu_determinism(raw_uu_pgi_file: Path, tmp_path: Path, riuu_profile) -> None:
+    out1 = tmp_path / "run1"
+    out2 = tmp_path / "run2"
+    txt1, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=out1)
+    txt2, _ = normalize(raw_uu_pgi_file, riuu_profile, output_dir=out2)
     assert txt1.read_text(encoding="utf-8") == txt2.read_text(encoding="utf-8")
