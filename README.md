@@ -91,6 +91,7 @@ Profile adalah file YAML yang mendefinisikan aturan pembersihan untuk jenis doku
 | `ojk-seojk` | SEOJK (Surat Edaran OJK) | JDIH OJK |
 | `ri-pp` | PP (Peraturan Pemerintah RI) | peraturan.go.id, hukumonline.com |
 | `ri-uu` | UU (Undang-Undang RI) | peraturan.go.id, hukumonline.com |
+| `uu-konsolidasi` | UU Konsolidasi (teks terintegrasi dengan perubahan UU/PERPU dan anotasi Putusan MK) | hukumonline.com |
 
 Untuk membuat profile baru (PBI, Permenkeu, dll.), lihat [docs/PROFILE_GUIDE.md](docs/PROFILE_GUIDE.md) dan gunakan `regulasi_id_corpus_prep/profiles/_template.yaml` sebagai titik awal.
 

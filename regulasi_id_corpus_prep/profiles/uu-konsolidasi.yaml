@@ -1,0 +1,160 @@
+# SPDX-License-Identifier: Apache-2.0
+# Profile: uu-konsolidasi — UU Konsolidasi Hukumonline
+# Format konsolidasi menyatukan teks UU beserta semua perubahan (UU, PERPU) dan
+# anotasi Putusan MK dalam satu dokumen. Penjelasan Pasal terintegrasi langsung
+# setelah tiap Pasal (bukan sebagai section terpisah di akhir).
+#
+# PENTING — Yang HARUS dipertahankan:
+#   • "Update: Januari 2026" / "Update : Januari 2026" — tanggal konsolidasi
+#   • "SEBAGAIMANA DIUBAH OLEH: ..." — daftar UU/PERPU pengubah
+#   • "DILENGKAPI DENGAN ANOTASI: ..." — daftar Putusan MK
+#   • "UNDANG-UNDANG NOMOR X TAHUN YYYY" / "PERATURAN PEMERINTAH PENGGANTI ..."
+#     yang muncul di bawah Pasal — informasi norma mana yang mengubah Pasal tsb
+#   • "PUTUSAN MAHKAMAH KONSTITUSI NOMOR ..." — anotasi MK di bawah Pasal
+#   • Definisi catatan kaki: "N Anotasi Putusan MK...", "Catatan :", dst.
+#   • LEMBARAN NEGARA / TAMBAHAN LEMBARAN NEGARA — nomor gazette UU asli
+
+metadata:
+  name: uu-konsolidasi
+  description: "UU Konsolidasi — teks terintegrasi dengan perubahan UU/PERPU dan anotasi Putusan MK"
+  version: "1.0.0"
+  document_types:
+    - UU-Konsolidasi
+
+rules:
+  # =========================================================
+  # NOISE REMOVAL — dijalankan SEBELUM whitespace_normalize
+  # =========================================================
+
+  # Hapus baris banner peraturan.go.id (selalu di baris pertama)
+  - name: remove_menemukan_kesalahan
+    type: noise_removal
+    pattern: 'Menemukan kesalahan ketik[^\n]*'
+    replacement: ''
+    flags: [IGNORECASE]
+
+  # Hapus footer personal download: "NAMA | DIUNDUH PADA TANGGAL  N / M"
+  # Covers berbagai nama pengguna dan tanggal unduhan yang berbeda
+  - name: remove_personal_footer
+    type: noise_removal
+    pattern: '[A-Z][A-Z ]{2,}\|\s*DIUNDUH PADA[^\n]*'
+    replacement: ''
+
+  # Hapus header/footer domain hukumonline yang muncul tiap halaman
+  # Cover: "www.hukumonline.com" (dengan atau tanpa leading whitespace)
+  - name: remove_hukumonline_header
+    type: noise_removal
+    pattern: '^\s*www\.hukumonline\.com[^\n]*$'
+    replacement: ''
+    flags: [MULTILINE]
+
+  # =========================================================
+  # WHITESPACE NORMALIZE
+  # =========================================================
+  - name: normalize_whitespace
+    type: whitespace_normalize
+
+  # =========================================================
+  # STRUCTURE SPLIT — dijalankan SETELAH whitespace_normalize
+  # =========================================================
+
+  # Frasa pembuka preamble
+  - name: split_before_dengan_rahmat
+    type: structure_split
+    pattern: 'DENGAN\s+RAHMAT\s*TUHAN\s+YANG\s+MAHA\s+ESA'
+    newlines_before: 2
+
+  # Kata kunci preamble diikuti tanda titik dua
+  - name: split_before_structural_keywords
+    type: structure_split
+    pattern: '(?:Menimbang|Mengingat|MEMUTUSKAN|Menetapkan)\s*:'
+    newlines_before: 2
+    flags: [IGNORECASE]
+
+  # Bagian persetujuan bersama DPR — khas UU
+  - name: split_before_dengan_persetujuan
+    type: structure_split
+    pattern: 'Dengan\s+Persetujuan\s+Bersama'
+    newlines_before: 2
+
+  # Header daftar UU/PERPU pengubah — khas konsolidasi (ALL CAPS = editorial header)
+  - name: split_before_sebagaimana_diubah
+    type: structure_split
+    pattern: 'SEBAGAIMANA\s+DIUBAH\s+OLEH'
+    newlines_before: 2
+
+  # Header daftar anotasi Putusan MK — khas konsolidasi dengan anotasi MK
+  - name: split_before_dilengkapi_anotasi
+    type: structure_split
+    pattern: 'DILENGKAPI\s+DENGAN\s+ANOTASI'
+    newlines_before: 2
+
+  # BAB (level 1)
+  - name: split_before_bab
+    type: structure_split
+    pattern: 'BAB\s+[IVXLCDM]+[A-Z]?'
+    newlines_before: 2
+
+  # Marker section Batang Tubuh
+  - name: split_before_ketentuan_section
+    type: structure_split
+    pattern: 'KETENTUAN\s+(?:UMUM|PIDANA|PERALIHAN|PENUTUP)'
+    newlines_before: 2
+
+  # Header section "ATURAN UMUM" — khas dokumen konsolidasi KUHP (UU 1/2023)
+  - name: split_before_aturan_umum
+    type: structure_split
+    pattern: 'ATURAN\s+UMUM'
+    newlines_before: 2
+
+  # Header section "PENJELASAN UMUM" — khas dokumen konsolidasi ketenagakerjaan
+  - name: split_before_penjelasan_umum
+    type: structure_split
+    pattern: 'PENJELASAN\s+UMUM'
+    newlines_before: 2
+
+  # Pasal (unit utama) — konsolidasi menggunakan angka Arab
+  # Termasuk suffix huruf sisipan: Pasal 28A, Pasal 599A
+  - name: split_before_pasal
+    type: structure_split
+    pattern: '(?<!Penjelasan )Pasal\s+\d+[A-Z]?'
+    newlines_before: 2
+
+  # Penjelasan Pasal (terintegrasi) — muncul langsung setelah isi Pasal
+  # Berbeda dari UU biasa di mana PENJELASAN adalah section terpisah di akhir
+  - name: split_before_penjelasan_pasal
+    type: structure_split
+    pattern: 'Penjelasan\s+Pasal\s+\d+[A-Z]?'
+    newlines_before: 2
+
+  # Ayat: (1), (2), (1a) — sub-Pasal
+  - name: split_before_ayat
+    type: structure_split
+    pattern: '\(\d+[a-z]?\)'
+    newlines_before: 1
+    space_after: true
+
+  # Poin angka: 1., 2., dst.
+  - name: split_before_numbered_points
+    type: structure_split
+    pattern: '\d+\.'
+    newlines_before: 1
+    space_after: true
+
+  # Poin huruf: a., b., dst. (hanya jika diikuti kata kunci hukum)
+  - name: split_before_letter_points
+    type: structure_split
+    pattern: '[a-z]\.'
+    newlines_before: 1
+    requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi|untuk|dengan|terhadap|setiap|apabila|kepada|bahwa|perkara|ketentuan|pidana|daerah|hukum'
+
+validation:
+  title_keywords:
+    - "UNDANG-UNDANG REPUBLIK INDONESIA"
+    - "KONSOLIDASI"
+  content_marker_pattern: 'Pasal\s+\d+'
+  content_marker_label: "Pasal"
+  noise_check_patterns:
+    - 'DIUNDUH PADA'
+    - 'Menemukan kesalahan ketik'
+    - 'www\.hukumonline\.com'
