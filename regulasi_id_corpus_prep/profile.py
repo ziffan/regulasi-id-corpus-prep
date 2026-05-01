@@ -39,6 +39,12 @@ Rule = Annotated[
 ]
 
 
+class MarkdownHeading(BaseModel):
+    pattern: str
+    level: int = Field(ge=1, le=6)
+    flags: list[str] = Field(default_factory=list)
+
+
 class ProfileValidation(BaseModel):
     title_keywords: list[str]
     content_marker_pattern: str
@@ -57,6 +63,7 @@ class Profile(BaseModel):
     metadata: ProfileMetadata
     rules: list[Rule]
     validation: ProfileValidation
+    markdown_headings: list[MarkdownHeading] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _check_unique_rule_names(self) -> "Profile":

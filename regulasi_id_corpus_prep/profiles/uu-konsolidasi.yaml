@@ -148,6 +148,14 @@ rules:
     newlines_before: 1
     requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi|untuk|dengan|terhadap|setiap|apabila|kepada|bahwa|perkara|ketentuan|pidana|daerah|hukum'
 
+markdown_headings:
+  - pattern: 'BAB\s+[IVXLCDM]+[A-Z]?'
+    level: 2
+  - pattern: 'Pasal\s+\d+[A-Z]?'
+    level: 3
+  - pattern: 'Penjelasan\s+Pasal\s+\d+[A-Z]?'
+    level: 4
+
 validation:
   title_keywords:
     - "UNDANG-UNDANG REPUBLIK INDONESIA"

@@ -85,11 +85,19 @@ def extract_cmd(input_path: Path, output_dir: Path | None) -> None:
     default=None,
     help="Direktori profile kustom.",
 )
+@click.option(
+    "--format", "-f", "fmt",
+    type=click.Choice(["txt", "md"]),
+    default="txt",
+    show_default=True,
+    help="Format output: txt (plain text) atau md (Markdown dengan heading).",
+)
 def normalize_cmd(
     raw_txt_path: Path,
     profile: str,
     output_dir: Path | None,
     profiles_dir: Path | None,
+    fmt: str,
 ) -> None:
     """Normalisasi file .raw.txt menjadi corpus .txt menggunakan profile.
 
@@ -104,8 +112,8 @@ def normalize_cmd(
     target_dir = output_dir or raw_txt_path.parent
 
     try:
-        txt_path, _ = normalize(raw_txt_path, prof, output_dir=target_dir)
-        _console.print(f"[green]OK[/green] {raw_txt_path.name} -> {txt_path.name}")
+        out_path, _ = normalize(raw_txt_path, prof, output_dir=target_dir, fmt=fmt)
+        _console.print(f"[green]OK[/green] {raw_txt_path.name} -> {out_path.name}")
     except Exception as exc:
         _error(f"Normalisasi gagal: {exc}")
         sys.exit(1)
@@ -156,11 +164,19 @@ def validate_cmd(txt_path: Path, profile: str, profiles_dir: Path | None) -> Non
     default=None,
     help="Direktori profile kustom.",
 )
+@click.option(
+    "--format", "-f", "fmt",
+    type=click.Choice(["txt", "md"]),
+    default="txt",
+    show_default=True,
+    help="Format output: txt (plain text) atau md (Markdown dengan heading).",
+)
 def run_cmd(
     input_path: Path,
     profile: str,
     output_dir: Path | None,
     profiles_dir: Path | None,
+    fmt: str,
 ) -> None:
     """Jalankan pipeline penuh: extract → normalize → validate.
 
@@ -199,19 +215,19 @@ def run_cmd(
             sys.exit(1)
 
         try:
-            txt_path, _ = normalize(raw_txt, prof, output_dir=target_dir)
-            _console.print(f"  [green]OK[/green] normalize -> {txt_path.name}")
+            out_path, _ = normalize(raw_txt, prof, output_dir=target_dir, fmt=fmt)
+            _console.print(f"  [green]OK[/green] normalize -> {out_path.name}")
         except Exception as exc:
             _error(f"Normalize gagal untuk '{raw_txt.name}': {exc}")
             sys.exit(1)
 
         try:
-            result = validate_corpus(txt_path, prof)
+            result = validate_corpus(out_path, prof)
             print_validation_report(txt_path, result, console=_console)
             if result.exit_code == 2:
                 has_critical_failure = True
         except Exception as exc:
-            _error(f"Validate gagal untuk '{txt_path.name}': {exc}")
+            _error(f"Validate gagal untuk '{out_path.name}': {exc}")
             sys.exit(2)
 
     if has_critical_failure:

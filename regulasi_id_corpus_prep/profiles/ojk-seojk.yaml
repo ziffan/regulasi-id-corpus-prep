@@ -72,6 +72,11 @@ rules:
     newlines_before: 1
     requires_following: 'bahwa|dalam|berdasarkan|pada|meliputi'
 
+markdown_headings:
+  # SEOJK menggunakan angka Romawi (I., II.) sebagai pengganti BAB
+  - pattern: '[IVX]{1,6}\.\s+[A-Z]'
+    level: 2
+
 validation:
   title_keywords:
     - "SURAT EDARAN OTORITAS JASA KEUANGAN"

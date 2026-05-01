@@ -75,6 +75,12 @@ rules:
     flags:
       - IGNORECASE
 
+markdown_headings:
+  - pattern: 'BAB\s+[IVX]+'
+    level: 2
+  - pattern: 'Pasal\s+\d+'
+    level: 3
+
 validation:
   title_keywords:
     - "PERATURAN OTORITAS JASA KEUANGAN"

@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .profile import NoiseRemovalRule, Profile, StructureSplitRule, WhitespaceNormalizeRule
+from .profile import MarkdownHeading, NoiseRemovalRule, Profile, StructureSplitRule, WhitespaceNormalizeRule
 
 
 def _build_re_flags(flag_names: list[str]) -> int:
@@ -52,7 +52,30 @@ def _apply_rule(text: str, rule: object, stats: dict) -> str:
     return text
 
 
-def normalize(raw_txt_path: Path, profile: Profile, output_dir: Path | None = None) -> tuple[Path, Path]:
+def _apply_markdown_headings(text: str, headings: list[MarkdownHeading]) -> str:
+    if not headings:
+        return text
+    compiled = [
+        (re.compile(h.pattern, _build_re_flags(h.flags)), h.level)
+        for h in headings
+    ]
+    lines = text.split("\n")
+    result = []
+    for line in lines:
+        for pattern, level in compiled:
+            if pattern.match(line):
+                line = "#" * level + " " + line
+                break
+        result.append(line)
+    return "\n".join(result)
+
+
+def normalize(
+    raw_txt_path: Path,
+    profile: Profile,
+    output_dir: Path | None = None,
+    fmt: str = "txt",
+) -> tuple[Path, Path]:
     """Apply profile rules to a .raw.txt file, producing a corpus-ready .txt.
 
     Returns (txt_path, meta_json_path).
@@ -65,7 +88,8 @@ def normalize(raw_txt_path: Path, profile: Profile, output_dir: Path | None = No
     name = raw_txt_path.name
     stem = name[:-8] if name.endswith(".raw.txt") else raw_txt_path.stem
 
-    txt_path = output_dir / f"{stem}.txt"
+    ext = ".md" if fmt == "md" else ".txt"
+    out_path = output_dir / f"{stem}{ext}"
     meta_path = output_dir / f"{stem}.meta.json"
 
     text = raw_txt_path.read_text(encoding="utf-8")
@@ -78,15 +102,19 @@ def normalize(raw_txt_path: Path, profile: Profile, output_dir: Path | None = No
     lines = [line.strip() for line in text.split("\n")]
     text = "\n".join(line for line in lines if line).strip()
 
-    txt_path.write_text(text, encoding="utf-8")
+    if fmt == "md":
+        text = _apply_markdown_headings(text, profile.markdown_headings)
+
+    out_path.write_text(text, encoding="utf-8")
 
     meta = {
         "source_raw": raw_txt_path.name,
         "profile_name": profile.metadata.name,
         "profile_version": profile.metadata.version,
+        "output_format": fmt,
         "rules_applied": rule_stats,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    return txt_path, meta_path
+    return out_path, meta_path

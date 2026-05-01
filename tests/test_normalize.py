@@ -677,3 +677,97 @@ def test_uu_konsolidasi_determinism(raw_kns_file: Path, tmp_path: Path, uuknsoli
     txt1, _ = normalize(raw_kns_file, uuknsolidasi_profile, output_dir=out1)
     txt2, _ = normalize(raw_kns_file, uuknsolidasi_profile, output_dir=out2)
     assert txt1.read_text(encoding="utf-8") == txt2.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# --format md tests
+# ---------------------------------------------------------------------------
+
+RAW_MD = (
+    "PERATURAN OTORITAS JASA KEUANGAN REPUBLIK INDONESIA NOMOR 1 TAHUN 2099 "
+    "BAB I KETENTUAN UMUM Pasal 1 (1) Definisi ini. Pasal 2 Ketentuan lain. "
+    "BAB II PENUTUP Pasal 3 Peraturan berlaku."
+)
+
+
+@pytest.fixture
+def raw_md_file(tmp_path: Path) -> Path:
+    p = tmp_path / "md_test.raw.txt"
+    p.write_text(RAW_MD, encoding="utf-8")
+    return p
+
+
+def test_md_format_produces_md_extension(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    out, _ = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="md")
+    assert out.suffix == ".md"
+    assert out.exists()
+
+
+def test_txt_format_produces_txt_extension(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    out, _ = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="txt")
+    assert out.suffix == ".txt"
+
+
+def test_md_format_default_is_txt(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    out, _ = normalize(raw_md_file, pojk_profile, output_dir=tmp_path)
+    assert out.suffix == ".txt"
+
+
+def test_md_format_bab_becomes_h2(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    out, _ = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="md")
+    lines = out.read_text(encoding="utf-8").splitlines()
+    bab_lines = [l for l in lines if re.match(r"##\s+BAB\s+[IVX]", l)]
+    assert len(bab_lines) >= 2
+
+
+def test_md_format_pasal_becomes_h3(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    out, _ = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="md")
+    lines = out.read_text(encoding="utf-8").splitlines()
+    pasal_lines = [l for l in lines if re.match(r"###\s+Pasal\s+\d+", l)]
+    assert len(pasal_lines) >= 2
+
+
+def test_txt_format_has_no_markdown_headings(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    out, _ = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="txt")
+    content = out.read_text(encoding="utf-8")
+    assert "## " not in content
+    assert "### " not in content
+
+
+def test_md_format_meta_records_format(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    import json
+    _, meta_path = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="md")
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta["output_format"] == "md"
+
+
+def test_txt_format_meta_records_format(tmp_path: Path, pojk_profile, raw_md_file: Path) -> None:
+    import json
+    _, meta_path = normalize(raw_md_file, pojk_profile, output_dir=tmp_path, fmt="txt")
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    assert meta["output_format"] == "txt"
+
+
+def test_md_format_konsolidasi_penjelasan_pasal_becomes_h4(
+    tmp_path: Path, raw_kns_file: Path, uuknsolidasi_profile
+) -> None:
+    out, _ = normalize(raw_kns_file, uuknsolidasi_profile, output_dir=tmp_path, fmt="md")
+    lines = out.read_text(encoding="utf-8").splitlines()
+    penj_lines = [l for l in lines if re.match(r"####\s+Penjelasan\s+Pasal\s+\d+", l)]
+    assert len(penj_lines) >= 1
+
+
+def test_md_profile_without_headings_produces_plain_md(tmp_path: Path) -> None:
+    from regulasi_id_corpus_prep.profile import Profile
+    data = {
+        "metadata": {"name": "bare", "description": "bare", "version": "1.0.0", "document_types": ["X"]},
+        "rules": [{"name": "ws", "type": "whitespace_normalize"}],
+        "validation": {"title_keywords": ["X"], "content_marker_pattern": "X", "content_marker_label": "X"},
+    }
+    prof = Profile.model_validate(data)
+    p = tmp_path / "bare.raw.txt"
+    p.write_text("BAB I Ketentuan Umum", encoding="utf-8")
+    out, _ = normalize(p, prof, output_dir=tmp_path, fmt="md")
+    content = out.read_text(encoding="utf-8")
+    assert "## " not in content
+    assert "BAB I" in content
