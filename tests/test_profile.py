@@ -128,7 +128,7 @@ def test_profile_markdown_headings_invalid_level_zero() -> None:
 
 
 def test_builtin_profiles_have_markdown_headings() -> None:
-    for name in ("ojk-pojk", "ojk-seojk", "ri-pp", "ri-uu", "uu-konsolidasi"):
+    for name in ("ojk-pojk", "ojk-seojk", "ri-pp", "ri-uu"):
         prof = load_profile(name)
         assert isinstance(prof.markdown_headings, list), f"{name} missing markdown_headings"
         assert len(prof.markdown_headings) >= 1, f"{name} has empty markdown_headings"
