@@ -119,8 +119,18 @@ Validasi otomatis (`validate` subcommand) mengecek hal-hal teknis. Untuk memasti
 
 ---
 
+## Kontribusi
+
+Kami menyambut kontribusi dari komunitas! Silakan baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan pengembangan, aturan penamaan branch, dan proses pull request.
+
+Harap perhatikan [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) kami untuk menjaga lingkungan komunitas yang sehat dan inklusif.
+
+## Keamanan
+
+Jika Anda menemukan kerentanan keamanan, harap baca [SECURITY.md](SECURITY.md) untuk instruksi pelaporan.
+
 ## Lisensi
 
-Apache 2.0. Lihat [LICENSE](LICENSE).
+Apache 2.0 — lihat [LICENSE](LICENSE) untuk detail lengkap.
 
-Alat ini menggunakan [PyMuPDF](https://github.com/pymupdf/PyMuPDF) (AGPL-3.0) sebagai dependensi ekstraksi PDF. Lihat [NOTICE](NOTICE) untuk detail.
+Produk ini mencakup perangkat lunak pihak ketiga. Lihat [NOTICE](NOTICE) untuk informasi atribusi.
