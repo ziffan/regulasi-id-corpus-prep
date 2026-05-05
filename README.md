@@ -1,6 +1,6 @@
 # regulasi-id-corpus-prep
 
-Developed a high-performance CLI tool designed to automate the conversion of "born-digital" Indonesian regulatory PDF documents (specifically POJK and SEOJK from the JDIH OJK portal) into clean, structured .txt and Markdown formats.
+Developed a high-performance CLI tool designed to automate the conversion of "born-digital" Indonesian regulatory PDF documents (specifically UU, PP, POJK and SEOJK from the JDIH OJK portal) into clean, structured .txt and Markdown formats.
 
 This project serves as a critical data engineering layer for Legal NLP applications, providing the foundational corpus used in advanced platforms like [LexHarmoni](https://github.com/ziffan/lexharmoni).
 
